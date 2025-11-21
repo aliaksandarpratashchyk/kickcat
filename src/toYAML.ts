@@ -1,0 +1,34 @@
+/**
+ * KickCat v0.1.0
+ * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
+ * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ */
+
+import { type Node, Scalar, YAMLMap, YAMLSeq } from 'yaml';
+
+import nonNullable from './nonNullable';
+
+export default function toYAML(value: unknown): Node {
+	if (Array.isArray(value)) {
+		const yaml = new YAMLSeq();
+		value.forEach((item) => {
+			yaml.add(toYAML(item));
+		});
+
+		return yaml;
+	}
+
+	if (typeof value === 'object' && value !== null) {
+		const yaml = new YAMLMap();
+		Object.keys(value)
+			.toSorted()
+			.forEach((key) => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+				yaml.add({ key, value: toYAML(nonNullable((value as Record<string, unknown>)[key])) });
+			});
+
+		return yaml;
+	}
+
+	return new Scalar(value);
+}

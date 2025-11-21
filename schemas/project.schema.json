@@ -1,0 +1,54 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Single Project Schema",
+	"type": "object",
+	"required": ["title", "type", "columns", "fields", "views"],
+	"additionalProperties": false,
+	"properties": {
+		"title": { "type": "string" },
+		"number": { "type": "integer" },
+		"description": { "type": "string" },
+		"type": {
+			"type": "string",
+			"enum": ["classic", "v2"]
+		},
+		"columns": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["title"],
+				"properties": {
+					"title": { "type": "string" },
+					"description": { "type": "string" }
+				},
+				"additionalProperties": false
+			}
+		},
+		"fields": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["title", "type"],
+				"properties": {
+					"title": { "type": "string" },
+					"type": { "type": "string" },
+					"description": { "type": "string" }
+				},
+				"additionalProperties": false
+			}
+		},
+		"views": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["title"],
+				"properties": {
+					"title": { "type": "string" },
+					"filter": { "type": "string" },
+					"layout": { "type": "string" }
+				},
+				"additionalProperties": false
+			}
+		}
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Single Issue Schema",
+	"type": "object",
+	"required": ["key", "title", "milestone", "description"],
+	"additionalProperties": false,
+	"properties": {
+		"key": { "type": "string" },
+		"title": { "type": "string" },
+		"milestone": { "type": "string" },
+		"labels": {
+			"type": "array",
+			"items": { "type": "string" },
+			"default": []
+		},
+		"dependencies": {
+			"type": "array",
+			"items": { "type": "string" },
+			"default": []
+		},
+		"description": { "type": "string" }
+	}
+}
