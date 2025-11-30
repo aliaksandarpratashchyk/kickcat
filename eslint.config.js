@@ -84,6 +84,7 @@ module.exports = defineConfig(
 			'@typescript-eslint/no-magic-numbers': 'off',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-type-assertion': 'off'
 		},
 	},
 	{

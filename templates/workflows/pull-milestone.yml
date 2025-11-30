@@ -1,0 +1,68 @@
+# Synchronize .github/milestones.yml with GitHub milestone events
+name: Pull Milestone
+
+on:
+  milestone:
+    types: [created, opened, edited, closed, deleted]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run KickCat for milestone event               
+        run: |
+          set -euo pipefail          
+
+          case "${{ github.event.action }}" in
+            created)
+              npx @aliaksandarpratashchyk/kickcat add-milestone --number="${{ github.event.milestone.number }}"
+              ;;
+            opened)
+              npx @aliaksandarpratashchyk/kickcat reopen-milestone --number="${{ github.event.milestone.number }}"
+              ;;
+            closed)
+              npx @aliaksandarpratashchyk/kickcat close-milestone --number="${{ github.event.milestone.number }}"
+              ;;
+            edited)
+              npx @aliaksandarpratashchyk/kickcat pull-milestone --number="${{ github.event.milestone.number }}"
+              ;;
+            deleted)
+              npx @aliaksandarpratashchyk/kickcat delete-milestone --number="${{ github.event.milestone.number }}"
+              ;;
+            *)
+              echo "Milestone action '${{ github.event.milestone.number }}' not handled; skipping"
+              ;;
+          esac
+
+      - name: Commit milestone changes
+        id: commit
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- .github/milestones.yml; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/milestones.yml
+          git commit -m "chore: sync milestone #${{ github.event.milestone.number }} (${{ github.event.action }})"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push changes
+        if: steps.commit.outputs.has_changes == 'true'
+        run: git push

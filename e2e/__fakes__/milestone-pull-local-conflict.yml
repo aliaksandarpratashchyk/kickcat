@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=../../schemas/milestone.schema.yml
+# hash: 4fa572887b9ba72d4e9dc8d9b9f1ddc4
+
+number: 1
+title: 📝 Planning the Shopping List
+dueDate: 2024-01-05
+state: closed
+description: |
+  Prepare the full list of items before going to the supermarket.
+
+  ### Goal
+  Ensure nothing is forgotten and optimize shopping route inside store.
+
+  ### Outcomes
+  - Complete, categorized shopping list.
+  - Estimated budget calculated.
+  - Special offers noted.
+
+---
+
+# yaml-language-server: $schema=../../schemas/milestone.schema.yml
+# hash: c3b2f61e5f0d49ad1cfe3bb9a4db11d3
+
+number: 2
+title: 🍎 Fresh Produce Selection
+dueDate: 2024-01-20 # Conflict
+state: open
+description: |
+  Pick all fruits and vegetables from the fresh produce section.
+
+  ### Goal
+  Select the freshest ingredients while staying within budget.
+
+  ### Outcomes
+  - Basket filled with required produce items.
+  - Items inspected for ripeness and quality.
+  - Substitutions made if necessary.

@@ -4,189 +4,146 @@
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
 
-// eslint-disable-next-line import-x/no-named-as-default
-import Ajv, { type JSONSchemaType, type Schema, type ValidateFunction } from 'ajv';
-import { readFile, stat, unlink, writeFile } from 'fs/promises';
+import { readdir, stat } from 'fs/promises';
 import { resolve } from 'path';
-import { groupBy, isUndefined, sortBy, uniq } from 'underscore';
-import { Document, parse } from 'yaml';
-
-import { deep } from '../deep';
-import hash from '../hash';
+import dig from '../dig';
 import isYAMLFile from '../isYAMLFile';
 import nonNullable from '../nonNullable';
-import toYAML from '../toYAML';
-import LocalStorageEntry, {
-	CLEAN,
-	DIRTY,
-	FREEZED,
-	KILLED,
-	type LocalStorageEntryPayload,
-	NEW,
-} from './LocalStorageEntry';
+import { type Entity } from "../Entity";
+import LocalStorageFile from './LocalStorageFile';
+import type EntitySchema from '../EntitySchema';
+import { inject } from 'tsyringe';
+import EntitySchemaRegistry from '../EntitySchemaRegistry';
+import type { EntityStorage } from '../EntityStorage';
+import type { LocalStorageCookie } from './LocalStorageCookie';
+import type EntityStorageEntry from '../EntityStorageEntry';
+import type { EntityType } from '../EntityType';
+import EntityRegistry from '../EntityRegistry';
 
-export interface LocalStorageConfiguration {
-	path: string;
-	schema: JSONSchemaType<LocalStorageFile<LocalStorageEntryPayload>> | Schema;
+export interface LocalStorageConfiguration<T extends Entity> {
+	storagePath: string;
+	entitySchema: EntitySchema<T>;
 }
 
-type LocalStorageFile<T extends LocalStorageEntryPayload> =
-	| NormalizedLocalStorageFile<T>
-	| Record<string, NormalizedLocalStorageFile<T>>;
-
-type NormalizedLocalStorageFile<T extends LocalStorageEntryPayload> = T[];
-
-export default class LocalStorage<T extends LocalStorageEntryPayload> {
-	readonly configuration: LocalStorageConfiguration;
-	readonly validate: ValidateFunction;
-	get all(): Iterable<LocalStorageEntry<T>> {
-		return this.#entries;
+export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
+	readonly storagePath: string;
+	readonly entitySchemaRegistry: EntitySchemaRegistry;
+	readonly #entityRegistry: EntityRegistry<LocalStorageCookie>;
+	#fetched = false;		
+	get fetched(): boolean {
+		return this.#fetched;
 	}
-	readonly #entries = new Set<LocalStorageEntry<T>>();
-	#fetched = false;
+	readonly #files = new Map<string, LocalStorageFile>();		
 
-	readonly #fetchedFiles = new Set<string>();
+	constructor(
+		storagePath: string, 
+		@inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry
+	) {
+		this.storagePath = storagePath;
+		this.entitySchemaRegistry = entitySchemaRegistry;
+		this.#entityRegistry = new EntityRegistry<LocalStorageCookie>(this.entitySchemaRegistry);
+	}		
 
-	constructor(configuration: LocalStorageConfiguration) {
-		this.configuration = configuration;
+	async one<TEntity extends Entity>(of: EntityType, where: Partial<TEntity>): 
+		Promise<EntityStorageEntry<TEntity, LocalStorageCookie> | undefined> {
 
-		const ajv = new Ajv({ allErrors: true });
-		this.validate = ajv.compile(this.configuration.schema);
-	}
-
-	async commit(): Promise<void> {
-		await this.#eliminateOrphans();
-
-		await Promise.all(
-			Object.keys(
-				groupBy(this.#entries.values().toArray(), (entry) => nonNullable(entry.filePath)),
-			).map(this.#commitFile.bind(this)),
-		);
+		await this.#reindex();
+		return this.#entityRegistry.one<TEntity>(of, where);			
 	}
 
-	async fetch(): Promise<void> {
-		if (this.#fetched) return;
+	async *all<TEntity extends Entity>(of?: EntityType):
+			AsyncIterable<EntityStorageEntry<TEntity, LocalStorageCookie>> {
 
-		await Promise.all(
-			(await deep(this.configuration.path)).filter(isYAMLFile).map(this.#fetchFile.bind(this)),
-		);
+		await this.#reindex();
+
+		for (const entry of this.#entityRegistry.all<TEntity>(of))
+			yield entry;		
+	}	
+
+	async new<TEntity extends Entity>(of: EntityType, entity: TEntity): 
+		Promise<EntityStorageEntry<TEntity, LocalStorageCookie>> {
+		
+		return (await this.#getOrphanage(of)).new<TEntity>(of, entity);		
+	}
+
+	async commit(): Promise<void> {	
+		console.log(`Commiting local storage changes...`);
+
+		await this.#fetch();
+
+		for (const file of this.#files.values()) {
+			// eslint-disable-next-line no-await-in-loop
+			await file.commit();
+		}			
+	}			
+
+	async #fetch(): Promise<void> {
+		if (this.#fetched)
+			return;
+		
+		(await dig(this.storagePath)).filter(isYAMLFile).forEach(filePath => {			
+			this.#files.set(filePath, new LocalStorageFile({ filePath }, this.entitySchemaRegistry));
+		});		
 
 		this.#fetched = true;
 	}
 
-	new(payload: T): void {
-		this.#entries.add(new LocalStorageEntry<T>({ payload }));
-	}
+	async #getOrphanage(entityType: EntityType): Promise<LocalStorageFile> {		
+		const orphanagePath = await this.#resolveOrphanagePath(entityType);
+		
+		if (this.#files.has(orphanagePath))
+			return nonNullable(this.#files.get(orphanagePath));
 
-	async #commitFile(filePath: string): Promise<void> {
-		const hasSomethingToCommit = this.#entries
-			.values()
-			.filter((entry) => entry.filePath === filePath)
-			.some((entry) => [DIRTY, KILLED, NEW].includes(entry.state));
+		const orphanage = new LocalStorageFile({
+			filePath: orphanagePath },
+			this.entitySchemaRegistry);
 
-		if (hasSomethingToCommit) {
-			await this.#fetchFile(filePath);
-			const toCommit = this.#entries
-				.values()
-				.filter((entry) => entry.filePath === filePath)
-				.filter((entry) => ![FREEZED, KILLED].includes(entry.state))
-				.toArray();
+		this.#files.set(orphanagePath, orphanage);
+		return orphanage;
+	}		
 
-			toCommit.forEach((entry) => {
-				entry.hash = hash(entry.payload);
-			});
+	// eslint-disable-next-line max-statements
+	async #resolveOrphanagePath(entityType: EntityType): Promise<string> {
+		await this.#fetch();
 
-			if (toCommit.length === 0) await unlink(filePath);
-			else {
-				const yaml = toYAML(
-					sortBy(toCommit, (entry) => entry.index ?? Number.MAX_SAFE_INTEGER).map((entry) => ({
-						...entry.payload,
-						hash: entry.hash,
-					})),
-				);
-				const document = new Document();
-				document.contents = yaml;
-				await writeFile(filePath, document.toString());
-			}
-		}
-	}
+		const stats = await stat(this.storagePath);
 
-	async #eliminateOrphans(): Promise<void> {
-		const orphans = this.#entries
-			.values()
-			.filter((entry) => isUndefined(entry.filePath))
-			.toArray();
+		if (stats.isFile())
+			return this.storagePath;
 
-		if (orphans.length > 0) {
-			const orphanagePath = await this.#resolveOrphanagePath();
+		if (stats.isDirectory()) {
+			const inStorage = await readdir(this.storagePath);
+			const forEntity = inStorage.filter(path => path.includes(entityType));
 
-			orphans.forEach((orphan) => {
-				orphan.filePath = orphanagePath;
-			});
-		}
-	}
+			if (forEntity.length > 1)
+				throw new Error(`Can't resolve path for "${entityType}" storage. Found ${forEntity.length} candidates: ${forEntity.join(', ')}`);
 
-	async #fetchFile(filePath: string): Promise<void> {
-		if (this.#fetchedFiles.has(filePath)) return;
+			if (forEntity.length === 0)
+				return resolve(this.storagePath, 'hub.yml');
 
-		const raw = await readFile(filePath, 'utf8');
+			const forEntityStats = await stat(nonNullable(forEntity[0]));
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-		const parsed = parse(raw) as LocalStorageFile<T>;
-
-		if (this.validate(parsed)) {
-			const normalized = normalizeLocalStorageFile<T>(parsed);
-
-			for (let index = 0; index < normalized.length; index++) {
-				this.#entries.add(
-					new LocalStorageEntry<T>({
-						filePath,
-						index,
-						payload: nonNullable(normalized[index]),
-						state: CLEAN,
-					}),
+			if (forEntityStats.isFile())
+				return nonNullable(forEntity[0]);
+			else if (forEntityStats.isDirectory()) {
+				return (
+					(await readdir(nonNullable(forEntity[0]))).find((file) => /(?:common|shared)/u.exec(file)) ??
+					resolve(this.storagePath, 'shared.yml')
 				);
 			}
 		}
-
-		this.#fetchedFiles.add(filePath);
+		
+		throw new Error(`Can't resolve path to storage for ${entityType}.`);
 	}
 
-	#getUsedFiles(): string[] {
-		return uniq(
-			this.#entries
-				.values()
-				.toArray()
-				.map((entry) => entry.filePath)
-				.filter((filePath) => !isUndefined(filePath)),
-		);
+	async #reindex(): Promise<void> {
+		await this.#fetch();
+
+		for (const file of this.#files.values()) {
+			// eslint-disable-next-line no-await-in-loop
+			for await (const entry of file.all<Entity>()) {
+				this.#entityRegistry.set(entry);
+			}
+		}
 	}
-
-	async #resolveOrphanagePath(): Promise<string> {
-		const files = this.#getUsedFiles();
-
-		if (files.length === 1) return nonNullable(files[0]);
-
-		const stats = await stat(this.configuration.path);
-
-		if (stats.isFile()) return this.configuration.path;
-
-		return (
-			files.find((file) => /(?:common|shared)/u.exec(file)) ??
-			resolve(this.configuration.path, 'shared.yml')
-		);
-	}
-}
-
-function normalizeLocalStorageFile<T extends LocalStorageEntryPayload>(
-	file: LocalStorageFile<T>,
-): NormalizedLocalStorageFile<T> {
-	if (Array.isArray(file)) return file;
-
-	const keys = Object.keys(file);
-
-	if (keys.length !== 1 || !Array.isArray(nonNullable(file[nonNullable(keys[0])])))
-		throw new Error('Invalid local storage file format');
-
-	return nonNullable(file[nonNullable(keys[0])]);
 }

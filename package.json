@@ -1,6 +1,6 @@
 {
 	"name": "@aliaksandarpratashchyk/kickcat",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Infrastructure-as-code toolkit for GitHub repository automation. Includes reusable workflows, utilities, and a CLI to install workflow templates.",
 	"bin": "dist/bundle.js",
 	"author": "Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>",
@@ -26,8 +26,9 @@
 	},
 	"homepage": "https://github.com/aliaksandarpratashchyk/kickhub#readme",
 	"scripts": {
-		"build": "webpack && cpx LICENSE dist/ && cpx README.md dist/",
-		"test": "jest > COVERAGE.md && coverage-badges-cli -s ./coverage/coverage-summary.json -o ./coverage.svg --label Coverage",
+		"build": "webpack",
+		"e2e": "jest --testPathIgnorePatterns src",
+		"test": "jest --testPathIgnorePatterns e2e > COVERAGE.md && coverage-badges-cli -s ./coverage/coverage-summary.json -o ./coverage.svg --label Coverage",
 		"format": "npx prettier . --write",
 		"lint": "cross-env ESLINT_ENV=cli npx eslint . --fix"
 	},
@@ -71,7 +72,10 @@
 		"@types/js-yaml": "^4.0.9",
 		"ajv": "^8.17.1",
 		"commander": "^12.1.0",
+		"dotenv": "^17.2.3",
 		"octokit": "^5.0.5",
+		"reflect-metadata": "^0.2.2",
+		"tsyringe": "^4.10.0",
 		"underscore": "^1.13.7",
 		"yaml": "^2.4.1"
 	}

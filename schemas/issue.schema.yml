@@ -1,0 +1,134 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "GitHub Issue Schema"
+type: object
+required:
+  - title
+  - milestone
+  - description
+additionalProperties: false
+
+properties:
+
+  number:
+    order: 1
+    type: number
+    doNotSuggest: true
+    description: "GitHub issue number assigned automatically."
+    markdownDescription: |
+      **Internal GitHub issue number.**
+
+      - Added after first sync  
+      - Used for linking & referencing  
+      - Do not modify manually
+    x-kickcat-unique: true
+
+  title:
+    order: 2
+    type: string
+    description: "Issue title."
+    markdownDescription: |
+      **Issue title.**
+
+      Short, clear, and descriptive.
+
+      Example:
+      ```yaml
+      title: "Implement milestone synchronization"
+      ```
+
+  milestone:
+    order: 3
+    description: "Milestone reference (number or key/title)."
+    markdownDescription: |
+      **Milestone reference for this issue.**
+
+      Accepts either:
+      - A **number** — GitHub milestone number  
+      - A **string** — milestone key or title  
+      
+      Examples:
+      ```yaml
+      milestone: 3         # GitHub milestone #3
+      milestone: "[Seed] Milestone 1 – Setup"
+      milestone: "seed-1"
+      ```
+    oneOf:
+      - type: number
+      - type: string
+
+  labels:
+    order: 4
+    type: array
+    description: "List of GitHub label names."
+    markdownDescription: |
+      **Labels assigned to the issue.**
+
+      Must match defined labels in your label schema/files.
+
+      Example:
+      ```yaml
+      labels:
+        - "priority:high"
+        - "type:feature"
+      ```
+    items:
+      type: string
+    default: []
+
+  dependencies:
+    order: 5
+    type: array
+    description: "List of dependent issues (string or number)."
+    markdownDescription: |
+      **Dependencies for this issue.**
+
+      Accepts:
+      - Issue numbers  
+      - Issue aliases (strings)
+
+      Examples:
+      ```yaml
+      dependencies:
+        - 12
+        - "issue-init"
+      ```
+    items:
+      oneOf:
+        - type: number
+        - type: string
+    default: []
+
+  description:
+    order: 6
+    type: string
+    format: textarea
+    description: "Full issue description."
+    markdownDescription: |
+      **Full issue description (Markdown supported).**
+
+      Supports:
+      - paragraphs  
+      - lists  
+      - code blocks  
+      - task lists  
+
+      Example:
+      ```md
+      ### Goal
+      Implement milestone sync.
+
+      ### Steps
+      - [ ] Parse YAML
+      - [ ] Compare with GitHub
+      - [ ] Update changed fields
+      ```
+
+defaultSnippets:
+  - label: "Issue Template"
+    description: "Insert a standard issue structure."
+    body:
+      title: "$1"
+      milestone: "$2"
+      labels: []
+      dependencies: []
+      description: "$3"

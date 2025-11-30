@@ -4,15 +4,32 @@
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
 
-import type Application from './Application';
-import type { CommandOptions, CommandSchema } from './CommandSchema';
+import CommandOptionCollection from "./CommandOptionCollection";
+import type RequestContext from './RequestContext';
 
-export interface Command<T extends CommandSchema = CommandSchema> {
-	(options: CommandOptions<T>, application: Application): Promise<void> | void;
-	schema: T;
-}
+export type BreakingChainActionResult = Promise<boolean> | boolean;
 
-export function command<T extends CommandSchema>(action: Command<T>): Command {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-	return action as unknown as Command;
+export type NonbreakingChainActionResult = Promise<void> | void;
+
+export type ActionResult = BreakingChainActionResult | NonbreakingChainActionResult;
+
+export type Action = (options: Record<string, unknown>) => ActionResult;
+
+export default class Command {
+    readonly options = new CommandOptionCollection();
+    readonly description: string;
+    readonly action: Action;
+
+    constructor(action: Action, description?: string) {
+        this.action = action;
+        this.description = description ?? 'The command description is missing.';
+    }
+
+    async execute(request: RequestContext): Promise<boolean> {
+        for (const option of this.options)
+            option.parse(request);     
+        
+        // eslint-disable-next-line no-unneeded-ternary
+        return (await this.action(request.options) === false) ? false : true;
+    }
 }

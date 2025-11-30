@@ -1,0 +1,68 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "GitHub Label Schema"
+type: object
+required:
+  - name
+  - color
+additionalProperties: false
+
+properties:
+
+  name:
+    order: 1
+    type: string
+    description: "Label name as it appears on GitHub."
+    markdownDescription: |
+      **Label name** displayed on GitHub.
+
+      Examples:
+      - `priority:high`
+      - `type:feature`
+      - `scope:core`
+
+      This name must be **unique** per repository.
+    x-kickcat-unique: true
+
+  color:
+    order: 2
+    type: string
+    pattern: "^[0-9a-fA-F]{6}$"
+    description: "Hex color (6 characters, without #)."
+    markdownDescription: |
+      **Label color in hex format**.
+
+      Must be a 6-character hex code:
+      - lowercase or uppercase
+      - must **not** include `#`
+
+      Examples:
+      ```yaml
+      color: "d73a4a"   # red
+      color: "1d76db"   # blue
+      color: "0e8a16"   # green
+      ```
+
+  description:
+    order: 3
+    type: string
+    format: textarea
+    description: "Full label description."
+    markdownDescription: |
+      **Full description of the label.**
+
+      This appears on GitHub when hovering over the label.
+      Supports Markdown formatting.
+
+      Example:
+      ```md
+      Must be fixed as soon as possible.
+      Blocks releases.
+      ```
+
+defaultSnippets:
+  - label: "Label Template"
+    description: "Insert a standard GitHub label structure."
+    body:
+      name: "$1"
+      color: "$2"
+      description: "$3"

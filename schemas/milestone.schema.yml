@@ -1,0 +1,109 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "GitHub Milestone Schema"
+type: object
+required:
+  - title
+additionalProperties: false
+
+properties:
+
+  number:
+    doNotSuggest: true
+    order: 1
+    type: integer
+    description: "GitHub milestone number assigned by GitHub."
+    markdownDescription: |
+      **Internal GitHub milestone number.**
+
+      - Automatically added after creation  
+      - Used as a stable reference for updates  
+      - Do not edit manually
+    x-kickcat-unique: true
+
+  title:
+    order: 2
+    type: string
+    description: "Milestone title."
+    markdownDescription: |
+      **Milestone title shown on GitHub.**
+
+      Tip: Titles often include a key prefix in square brackets,  
+      e.g. `[Seed] Milestone 1 – Preparation`.
+
+      This acts as the *unique key* for matching milestones between  
+      YAML files and GitHub during syncing.
+    x-kickcat-unique: true
+
+  dueDate:
+    order: 3
+    type: string
+    format: date
+    description: "Due date in YYYY-MM-DD."
+    markdownDescription: |
+      **Optional milestone due date.**
+
+      Use ISO format: `YYYY-MM-DD`.
+
+      Example:
+      ```yaml
+      dueDate: "2025-05-17"
+      ```
+
+  state:
+    order: 4
+    type: string
+    enum:
+      - open
+      - closed
+    description: "Milestone state."
+    markdownDescription: |
+      **Milestone state.**
+
+      - `open` – displayed as active on GitHub  
+      - `closed` – milestone is finished  
+
+      Your sync workflow will preserve or update this based on configuration.
+
+    enumDescriptions:
+      - "Open milestone"
+      - "Closed milestone"
+
+    markdownEnumDescriptions:
+      - |
+        **Open milestone.**  
+        Active and not yet completed.
+      - |
+        **Closed milestone.**  
+        Finished or archived.
+
+  description:
+    order: 5
+    type: string
+    format: textarea
+    description: "Full milestone description."
+    markdownDescription: |
+      **Full milestone description.**
+
+      Supports Markdown formatting:
+
+      - lists  
+      - bold/italic  
+      - links  
+      - code blocks  
+
+      Example:
+      ```md
+      ### Goal
+      Complete initial project setup.
+
+      ### Outcomes
+      - Repo ready
+      - CI configured
+      ```
+
+defaultSnippets:
+  - label: "Milestone Template"
+    description: "Insert a standard milestone structure."
+    body:
+      title: "$1"
+      description: "$2"

@@ -1,98 +1,111 @@
-# yaml-language-server: $schema=../schemas/milestones.schema.json
+# yaml-language-server: $schema=../schemas/milestone.schema.yml
+title: "🚀 Project Setup"
+description: |
+  ### Description
+  Initialize the repository structure, automation scripts, workflow templates, and shared schemas.
 
-milestones:
-  - title: '🚀 Project Setup'
-    description: |
-      ### Description
-      Initialize the repository structure, automation scripts, workflow templates, and shared schemas.
+  ### Goal
+  Establish a clean, reproducible infrastructure-as-code foundation for all automation tools.
 
-      ### Goal
-      Establish a clean, reproducible infrastructure-as-code foundation for all automation tools.
+  ### Outcomes
+  - Base folder layout created (`src`, `workflows`, `templates`, `schemas`)
+  - Shared TypeScript utilities implemented
+  - JSON/YAML schema validation pipeline defined
+  - GitHub Actions CI bootstrapped
 
-      ### Outcomes
-      - Base folder layout created (`src`, `workflows`, `templates`, `schemas`)
-      - Shared TypeScript utilities implemented
-      - JSON/YAML schema validation pipeline defined
-      - GitHub Actions CI bootstrapped
+---
 
-  - title: '🧩 Milestones Sync'
-    description: |
-      ### Description
-      Implement workflows and scripts that read local milestone YAML files and synchronize them with GitHub milestones.
+# yaml-language-server: $schema=../schemas/milestone.schema.yml
+title: "🧩 Milestones Sync"
+description: |
+  ### Description
+  Implement workflows and scripts that read local milestone YAML files and synchronize them with GitHub milestones.
 
-      ### Goal
-      Ensure milestones are fully declarative and reproducible from local YAML definitions.
+  ### Goal
+  Ensure milestones are fully declarative and reproducible from local YAML definitions.
 
-      ### Outcomes
-      - Parse milestone files from file or folder
-      - Create missing milestones on GitHub
-      - Update existing milestones by detecting hash differences
-      - Handle key prefixes in square brackets for stable identification
-      - Write back assigned numbers and updated hashes to YAML
-      - Skip unchanged milestones and generate GitHub summary table
-      - Remove GitHub milestones not defined in YAML
-      - Perform conflict detection when GitHub and file diverge
+  ### Outcomes
+  - Parse milestone files from file or folder
+  - Create missing milestones on GitHub
+  - Update existing milestones by detecting hash differences
+  - Handle key prefixes in square brackets for stable identification
+  - Write back assigned numbers and updated hashes to YAML
+  - Skip unchanged milestones and generate GitHub summary table
+  - Remove GitHub milestones not defined in YAML
+  - Perform conflict detection when GitHub and file diverge
+  
+---
 
-  - title: '🏷️ Labels Sync'
-    description: |
-      ### Description
-      Synchronize labels from YAML definitions with GitHub repository labels.
+# yaml-language-server: $schema=../schemas/milestone.schema.yml
+title: "🏷️ Labels Sync"
+description: |
+  ### Description
+  Synchronize labels from YAML definitions with GitHub repository labels.
 
-      ### Goal
-      Make all repository labels declarative and versioned.
+  ### Goal
+  Make all repository labels declarative and versioned.
 
-      ### Outcomes
-      - Parse label definitions and color/description
-      - Create missing labels
-      - Update changed labels
-      - Remove orphaned labels if configured
-      - Support grouped labels by categories
-      - Produce diff summaries and skipped tables
+  ### Outcomes
+  - Parse label definitions and color/description
+  - Create missing labels
+  - Update changed labels
+  - Remove orphaned labels if configured
+  - Support grouped labels by categories
+  - Produce diff summaries and skipped tables
 
-  - title: '📦 Issues Sync'
-    description: |
-      ### Description
-      Implement issue creation and update logic based on declarative YAML/JSON definitions.
+---
 
-      ### Goal
-      Convert epics, tasks, dependencies, labels, and milestone assignments into a reproducible system.
+# yaml-language-server: $schema=../schemas/milestone.schema.yml
+title: "📦 Issues Sync"
+description: |
+  ### Description
+  Implement issue creation and update logic based on declarative YAML/JSON definitions.
 
-      ### Outcomes
-      - Create and update issues from templates
-      - Sync assignment to milestones
-      - Sync labels, projects, dependencies
-      - Detect stable identifiers through prefix key in title
-      - Summary tables with diffs for created/updated items
-      - Optional issue removal when not present in definitions
+  ### Goal
+  Convert epics, tasks, dependencies, labels, and milestone assignments into a reproducible system.
 
-  - title: '📊 Project Sync'
-    description: |
-      ### Description
-      Synchronize GitHub Projects (Classic and Project V2) using a declarative YAML schema.
+  ### Outcomes
+  - Create and update issues from templates
+  - Sync assignment to milestones
+  - Sync labels, projects, dependencies
+  - Detect stable identifiers through prefix key in title
+  - Summary tables with diffs for created/updated items
+  - Optional issue removal when not present in definitions
 
-      ### Goal
-      Fully automate project structure, columns, fields, and meta-data.
+---
 
-      ### Outcomes
-      - Parse project file or folder containing multiple project definitions
-      - Resolve classic vs Project V2 by project number automatically
-      - Sync columns, statuses, and layout
-      - Sync project description
-      - Sync custom fields (for V2)
-      - Detect diffs and show them in GitHub summary
-      - Support both single-project and multi-project definitions
+# yaml-language-server: $schema=../schemas/milestone.schema.yml
+title: "📊 Project Sync"
+description: |
+  ### Description
+  Synchronize GitHub Projects (Classic and Project V2) using a declarative YAML schema.
 
-  - title: '🔁 Full Automation Pipeline'
-    description: |
-      ### Description
-      Combine labels, milestones, issues, and project sync into a single orchestrated reusable pipeline.
+  ### Goal
+  Fully automate project structure, columns, fields, and meta-data.
 
-      ### Goal
-      Run full repository governance automation with a single workflow trigger or npx command.
+  ### Outcomes
+  - Parse project file or folder containing multiple project definitions
+  - Resolve classic vs Project V2 by project number automatically
+  - Sync columns, statuses, and layout
+  - Sync project description
+  - Sync custom fields (for V2)
+  - Detect diffs and show them in GitHub summary
+  - Support both single-project and multi-project definitions
 
-      ### Outcomes
-      - Unified CLI entrypoint
-      - Shared utility functions for GitHub API operations
-      - Composite workflow templates for multi-step automation
-      - GitHub summary with combined diffs
-      - Ability to run partial or full syncs via inputs
+---
+
+# yaml-language-server: $schema=../schemas/milestone.schema.yml
+title: "🔁 Full Automation Pipeline"
+description: |
+  ### Description
+  Combine labels, milestones, issues, and project sync into a single orchestrated reusable pipeline.
+
+  ### Goal
+  Run full repository governance automation with a single workflow trigger or npx command.
+
+  ### Outcomes
+  - Unified CLI entrypoint
+  - Shared utility functions for GitHub API operations
+  - Composite workflow templates for multi-step automation
+  - GitHub summary with combined diffs
+  - Ability to run partial or full syncs via inputs

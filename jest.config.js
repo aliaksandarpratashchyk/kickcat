@@ -10,6 +10,7 @@ module.exports = {
 	coverageDirectory: 'coverage',
 	coverageReporters: ['json-summary', 'text'],
 	coverageProvider: 'v8',
+	setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 	transform: {
 		...tsJestTransformCfg,
 	},

@@ -9,6 +9,15 @@ import { type Node, Scalar, YAMLMap, YAMLSeq } from 'yaml';
 import nonNullable from './nonNullable';
 
 export default function toYAML(value: unknown): Node {
+	if (typeof value === 'string') {
+		const scalar = new Scalar(value);
+
+		if (value.includes('\n'))
+			scalar.type = Scalar.BLOCK_LITERAL;
+
+		return scalar;
+	}
+
 	if (Array.isArray(value)) {
 		const yaml = new YAMLSeq();
 		value.forEach((item) => {

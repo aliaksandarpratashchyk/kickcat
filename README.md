@@ -1,50 +1,47 @@
-# ⚙️ KickCat - GitHub Workflow Automation Toolkit
+# ⚙️ KickCat - Milestone Sync CLI
 
-A reusable **Infrastructure-as-Code toolkit** for GitHub repository automation.  
-This package provides **bundled GitHub Actions workflows**, **JS helper scripts**, and a simple **CLI installer** to quickly bootstrap or sync automation in any repository.
+KickCat is a small CLI that treats GitHub milestones as infrastructure‑as‑code. It reads and writes milestones from YAML files, keeps hashes in comments, and offers simple commands to sync a "local" file store with a "remote" one.
 
-Designed to eliminate manual setup time for:
+> GitHub API integration is stubbed out; today the remote store must be another YAML location passed via `--remote-storage` or `KICKCAT_REMOTE_STORAGE`.
 
-- 🗂 Milestones (sync, remove, diff output, emoji summaries)
-- 🏷 Labels (IaC-driven label definitions, validation)
-- 📊 Projects (Classic & Projects v2 support, column sync, description sync)
-- 📄 JSON schema validation
-- 📝 GitHub summary generation (diff-based, rich tables, status indicators)
-- 🔧 Workflow utilities extracted from YAML into clean TypeScript modules
+## What it does
+- Store milestones as YAML (multi‑document) with schema metadata and content hashes.
+- Pull a single milestone from a remote store into the local one.
+- Push all local milestones to the remote store with hash-based conflict handling.
+- Delete milestones locally.
+- Repair/rewrite local files to fix formatting or hash issues.
 
----
+## Install & build
+- `npm install`
+- `npm run build` (produces `dist/bundle.js`)
 
-## ✨ Features
+## Usage
+Run commands with `node dist/bundle.js …` after building.
 
-### 🔁 Reusable Workflows
+- `node dist/bundle.js help`
+- `node dist/bundle.js milestone pull --number=1 --local-storage=./milestones.yml --remote-storage=./remote.yml`
+- `node dist/bundle.js milestone push all --local-storage=./milestones.yml --remote-storage=./remote.yml`
+- `node dist/bundle.js milestone delete --number=1 --local-storage=./milestones.yml`
+- `node dist/bundle.js repair --local-storage=./milestones.yml`
 
-Include prebuilt workflows by installing this package and dropping them into `.github/workflows`:
+### Options and defaults
+- `--local-storage` or `KICKCAT_LOCAL_STORAGE`: path to the local YAML file/folder (defaults to the current working directory).
+- `--remote-storage` or `KICKCAT_REMOTE_STORAGE`: path to the remote YAML store (required until GitHub binding is implemented).
+- `--git-hub-token` or `GITHUB_TOKEN`: stored for future GitHub support; not used when remote storage is a file path.
 
-- **Milestone Sync**
-- **Label Sync**
-- **Project Board Sync**
-- **Project Description Sync**
-- **YAML-Driven IaC for project configuration**
-- **JSON Validation**
-- **Diff Summary Tables**
-- **Side-by-side change visualizer**  
-  …and more.
+## Storage format
+Milestones are stored as separate YAML documents. Each document carries a header comment with the schema path, an optional type tag, and a hash:
 
-### 💡 JS Utilities
-
-Clean TypeScript/JavaScript utilities extracted from workflow bodies:
-
-- GitHub API clients
-- diff generators
-- table renderers
-- rich summary builders
-- file loaders (folder or single file)
-- key extractors from titles (e.g., `[Key] …`)
-
-### 🖥 CLI Installer
-
-Install workflows into any repo via:
-
-```sh
-npx workflow-automation install
+```yaml
+# type: milestone
+# yaml-language-server: $schema=../schemas/milestone.schema.yml
+# hash: 4fa572887b9ba72d4e9dc8d9b9f1ddc4
+number: 1
+title: Planning
+dueDate: 2024-01-05
+state: closed
+description: |
+  …
 ```
+
+KickCat preserves these comments during parsing and uses them to decide whether to overwrite or update milestones when syncing.
