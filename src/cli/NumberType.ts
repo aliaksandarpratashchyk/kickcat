@@ -7,8 +7,13 @@
 import type { Type } from './Type';
 
 const numberType: Type<number> = {
-	parse(value: string): number {
-		return Number.parseFloat(value);
+	parse(raw: string): number {
+		const parsed = Number.parseFloat(raw);
+
+		if (Number.isNaN(parsed))
+			throw new Error(`Cannot parse "${raw}" as number.`);
+		
+		return parsed;
 	},
 	toString(): string {
 		return 'number';

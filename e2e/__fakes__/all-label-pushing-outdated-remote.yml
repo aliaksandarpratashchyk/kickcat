@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=../../schemas/label.schema.yml
+# hash: 0164dce4fecd422e564bf97bc2bd703f
+
+name: priority:low
+color: 00ff00
+description: Nice-to-have, no urgency.
+
+---
+
+# yaml-language-server: $schema=../../schemas/label.schema.yml
+# hash: 3e4a90518fffeba597195040621b0e16
+
+name: priority:medium
+color: 00ffff
+description: Normal importance tasks.
+
+---
+
+# yaml-language-server: $schema=../../schemas/label.schema.yml
+# hash: ffd8f5a770b036a4119b5ee892b9f915
+
+name: priority:high
+color: ff0000 # Outdated here, changed in local
+description: Should be worked on soon; blocks major features.

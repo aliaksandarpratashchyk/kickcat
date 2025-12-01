@@ -9,8 +9,11 @@ import { promisify } from "node:util";
 import oneLine from "./oneLine";
 
 export default async function shell(command: string): Promise<void> {
-    const { stdout, stderr } = await promisify(exec)(oneLine(command));     
-    console.log(stdout);  
-    if (stderr)
+    const { stdout, stderr } = await promisify(exec)(oneLine(command));   
+    if (stdout.trim())  
+        // eslint-disable-next-line no-console
+        console.log(stdout);  
+    if (stderr.trim())
+        // eslint-disable-next-line no-console
         console.error(stderr);         
 }

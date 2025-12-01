@@ -7,24 +7,26 @@
 import shell from "../src/shell";
 import { fake } from "../src/Fake";
 
-describe('milestone pull', () => {
+describe('Given user pulling a label', () => {
     describe.each`
-    localStorage                           | remoteStorage                  | expectedLocalStorage
-    ${'milestone-pull-local-absent.yml'}   | ${'milestone-pull-remote.yml'} | ${'milestone-pull-local-absent-expected.yml'}
-    ${'milestone-pull-local-conflict.yml'} | ${'milestone-pull-remote.yml'} | ${'milestone-pull-local-conflict-expected.yml'}
-    ${'milestone-pull-local-outdated.yml'} | ${'milestone-pull-remote.yml'} | ${'milestone-pull-local-outdated-expected.yml'}
+    localStorage                          | remoteStorage                          | expectedLocalStorage
+    ${'label-pulling-absent-local.yml'}   | ${'label-pulling-absent-remote.yml'}   | ${'label-pulling-absent-local-expected.yml'}
+    ${'label-pulling-conflict-local.yml'} | ${'label-pulling-conflict-remote.yml'} | ${'label-pulling-conflict-local-expected.yml'}
+    ${'label-pulling-outdated-local.yml'} | ${'label-pulling-outdated-remote.yml'} | ${'label-pulling-outdated-local-expected.yml'}
     `('when the local storage is $localStorage and the remote storage is $remoteStorage', 
         ({ localStorage, remoteStorage, expectedLocalStorage }) => {
-        it('should pull a milestone from the remote to the local storage.', async () => {                        
+        it('should pull a label from the remote to the local storage.', async () => {                        
             const localStorageSandbox = await fake(localStorage).toSandbox();
             const remoteStorageSandbox = await fake(remoteStorage).toSandbox();
 
             try {
-                await shell(
-                    `node dist/bundle.js milestone pull 
-                    --number=2 
+                await shell(                    
+                    `node dist/bundle.js entity pull 
                     --local-storage="${localStorageSandbox.path}"
-                    --remote-storage="${remoteStorageSandbox.path}"`);                
+                    --remote-storage="${remoteStorageSandbox.path}"
+                    --of=label
+                    --key=name
+                    --value=priority:high`);                
 
                 expect(await localStorageSandbox.read()).toBe(
                     await fake(expectedLocalStorage).read());

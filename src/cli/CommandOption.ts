@@ -11,6 +11,7 @@ import type RequestContext from './RequestContext';
 import { isUndefined } from "underscore";
 import booleanType from "./BooleanType";
 import nonNullable from "../nonNullable";
+import type LoggerFacade from "../logging/LoggerFacade";
 
 export interface CommanOptionConfiguration {
     tag: string;
@@ -84,18 +85,17 @@ export default class CommandOption {
         return this.#pattern.test(option);
     }
 
-	// eslint-disable-next-line max-statements, max-lines-per-function
-	parse(request: RequestContext): void {
-        console.log(`Parsing ${this.name} option...`);        
-
-        console.log(`The raw request is "${request.raw.join(' ')}".`);
+	// eslint-disable-next-line max-statements, max-lines-per-function, complexity
+	parse(request: RequestContext, logger?: LoggerFacade): void {        
+        logger?.debug(`Parsing ${this.name} option...`);        
+        logger?.debug(`The raw request is "${request.raw.join(' ')}".`);
 
         const rawIndex = request.raw.findIndex(option => this.test(option));
         // eslint-disable-next-line no-undefined
         const raw = rawIndex >= 0 ? request.raw[rawIndex] : undefined;
 
         if (isUndefined(raw)) {
-            console.log(`The option is not found, checking required and default value.`);
+            logger?.debug(`The option is not found, checking required and default value.`);
 
             if (this.required && isUndefined(this.defaultValue))
                 throw new Error(`Parameter "${this.name}" is required.`);
@@ -103,7 +103,7 @@ export default class CommandOption {
             if (!isUndefined(this.defaultValue))
                 request.options[this.tag] = this.defaultValue;
 
-            console.log(`The option is not required and don't have default value, skipping.`);
+            logger?.debug(`The option is not required and don't have default value, skipping.`);
 
             return;
         }

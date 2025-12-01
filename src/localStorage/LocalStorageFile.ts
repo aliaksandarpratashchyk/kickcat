@@ -27,6 +27,7 @@ import type { EntityStorage } from '../EntityStorage';
 import EntityRegistry from '../EntityRegistry';
 import unsafe from '../unsafe';
 import type EntitySchema from '../EntitySchema';
+import LoggerFacade from '../logging/LoggerFacade';
 
 export interface LocalStorageFileConfiguration {
     filePath: string;
@@ -54,16 +55,19 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
     readonly filePath: string;
     readonly entitySchemaRegistry: EntitySchemaRegistry;
     readonly #entityRegistry: EntityRegistry<LocalStorageCookie>;
+    readonly #logger: LoggerFacade;
     #eof = false;
 
     constructor({
         filePath
     }: LocalStorageFileConfiguration,
-        @inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry
+        @inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry,
+        @inject(LoggerFacade) logger: LoggerFacade
     ) {
         this.filePath = filePath;
         this.entitySchemaRegistry = entitySchemaRegistry;
         this.#entityRegistry = new EntityRegistry<LocalStorageCookie>(this.entitySchemaRegistry);
+        this.#logger = logger;
     }
 
     async one<TEntity extends Entity>(of: EntityType, where: Partial<TEntity>):
@@ -106,7 +110,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 
     // eslint-disable-next-line max-statements
     async commit(): Promise<void> {
-        console.log(`Commiting changes to "${this.filePath}"...`);
+        this.#logger.debug(`Commiting changes to "${this.filePath}"...`);
 
         await this.#reindex();
 
@@ -116,7 +120,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
             (entry) => [DIRTY, KILLED, NEW].includes(entry.state) || hash(entry.entity) !== entry.hash);
 
         const grouped = groupBy(entries, entry => entry.state);
-        console.log(`Have ${Object.entries(grouped).map(([state, group]) => `[${state.toUpperCase()}]: ${group.length}`).join(', ')}`);
+        this.#logger.debug(`Have ${Object.entries(grouped).map(([state, group]) => `[${state.toUpperCase()}]: ${group.length}`).join(', ')}`);
 
         if (hasSomethingToCommit) {
             const toCommit = entries.filter((entry) => ![KILLED].includes(entry.state));
@@ -138,7 +142,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
             }
         }
         else {
-            console.log(`Skipping commit to "${this.filePath}". Nothing changed.`);
+            this.#logger.debug(`Skipping commit to "${this.filePath}". Nothing changed.`);
         }
     }
 
@@ -153,7 +157,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
         for (let index = 0; index < documents.length; index++) {
             const document = nonNullable(documents[index]);                        
             const entity = unsafe<Entity>(document.toJS());
-            let savedHash = '';
+            let savedHash: string | undefined = '';
             let schemaPath: string | null = null;
             let savedType: EntityType | null = null;            
             let comment: string | null = null;
@@ -179,7 +183,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
                         savedType = savedTypeAsString;
                 }
                     
-            }                        
+            }                    
 
             let entitySchema: EntitySchema | undefined | null = null;
                         
@@ -195,17 +199,23 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
                 throw new Error(`Can't resolve schema for entity.`);
 
             if (entitySchema.validate(entity)) {
-                this.#entityRegistry.set(
-                    new EntityStorageEntry({
+                if (savedHash.trim() === '')
+                    // eslint-disable-next-line no-undefined
+                    savedHash = undefined;
+
+                const entry = new EntityStorageEntry({
                         type: entitySchema.type,
-                        entity,
-                        hash: savedHash,                        
+                        entity,                     
                         state: CLEAN,
+                        hash: savedHash,
                         cookie: {
                             file: this,
                             index
                         }
-                    }),
+                    });                
+
+                this.#entityRegistry.set(
+                    entry
                 );
             }
         }

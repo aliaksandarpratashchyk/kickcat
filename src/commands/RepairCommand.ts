@@ -9,6 +9,7 @@ import type { ClassCommandOptions, ClassCommandSchema } from '../cli/ClassComman
 import { inject, singleton } from 'tsyringe';
 import type { ClassCommand } from '../cli/ClassCommand';
 import type { EntityStorage } from '../EntityStorage';
+import LoggerFacade from '../logging/LoggerFacade';
 
 @singleton()
 export default class RepairCommand implements ClassCommand<typeof RepairCommand.schema> {
@@ -19,18 +20,21 @@ export default class RepairCommand implements ClassCommand<typeof RepairCommand.
 	} satisfies ClassCommandSchema;
 	
 	readonly #localStorage: EntityStorage;
+	readonly #logger: LoggerFacade;
 
 	constructor(		
 		@inject('LocalStorage') localStorage: EntityStorage,
+		@inject(LoggerFacade) logger: LoggerFacade
 	) {		
 		this.#localStorage = localStorage;
+		this.#logger = logger;
 	}
 
 	// eslint-disable-next-line no-empty-pattern
 	async execute({
 		
 	}: ClassCommandOptions<typeof RepairCommand.schema>): Promise<void> {		
-		console.log(`Repairing broken local storage...`);
+		this.#logger.info(`Repairing broken local storage...`);
 		await this.#localStorage.commit();		
 	}
 }

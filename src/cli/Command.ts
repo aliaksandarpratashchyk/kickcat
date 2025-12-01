@@ -4,6 +4,7 @@
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
 
+import type LoggerFacade from "../logging/LoggerFacade";
 import CommandOptionCollection from "./CommandOptionCollection";
 import type RequestContext from './RequestContext';
 
@@ -25,9 +26,9 @@ export default class Command {
         this.description = description ?? 'The command description is missing.';
     }
 
-    async execute(request: RequestContext): Promise<boolean> {
+    async execute(request: RequestContext, logger?: LoggerFacade): Promise<boolean> {
         for (const option of this.options)
-            option.parse(request);     
+            option.parse(request, logger);     
         
         // eslint-disable-next-line no-unneeded-ternary
         return (await this.action(request.options) === false) ? false : true;

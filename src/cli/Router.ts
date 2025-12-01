@@ -8,6 +8,7 @@ import { isUndefined } from "underscore";
 import Route from "./Route";
 import type RequestContext from './RequestContext';
 import type Command from "./Command";
+import type LoggerFacade from "../logging/LoggerFacade";
 
 export interface Endpoint {
     route: Route;
@@ -15,7 +16,12 @@ export interface Endpoint {
 }
 
 export default class Router {
-    readonly #endpoints: Endpoint[] = []
+    readonly #endpoints: Endpoint[] = [];
+    readonly #logger: LoggerFacade;
+
+    constructor(logger: LoggerFacade) {
+        this.#logger = logger;
+    }
 
     get endpoints(): Endpoint[] {
         return this.#endpoints;
@@ -87,7 +93,7 @@ export default class Router {
 
         for (const command of endpoint.commands) {            
             // eslint-disable-next-line no-await-in-loop
-            if (!(await (command.execute(request))))
+            if (!(await (command.execute(request, this.#logger))))
                 break;
         }				            
     }           

@@ -47,7 +47,6 @@ module.exports = defineConfig(
 					'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
 					'max-statements': ['error', 10, { ignoreTopLevelFunctions: true }],
 					'one-var': 'off',
-					'no-console': 'off',
 					'no-plusplus': 'off',
 					'no-ternary': 'off',					
 					'no-void': ['error', { allowAsStatement: true }],

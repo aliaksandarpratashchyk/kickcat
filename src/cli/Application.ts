@@ -7,6 +7,9 @@
 import Router from './Router';
 import onClause, { type OnClause } from './OnClause';
 import type RequestContext from './RequestContext';
+import LoggerFacade from '../logging/LoggerFacade';
+import { inject } from 'tsyringe';
+import ConsoleLogger from '../logging/ConsoleLogger';
 
 export interface ApplicationConfiguration {
 	author?: string;	
@@ -16,14 +19,20 @@ export interface ApplicationConfiguration {
 	version?: string;	
 }
 
-export default class Application {
-	readonly router = new Router();
+export default class Application {	
 	readonly configuration: ApplicationConfiguration;
 	readonly on: OnClause;
+	readonly #logger: LoggerFacade;
+	readonly router: Router;
 
-	constructor(configuration: ApplicationConfiguration) {
+	constructor(
+		configuration: ApplicationConfiguration, 
+		@inject(LoggerFacade) logger?: LoggerFacade
+	) {
 		this.configuration = configuration;				
 		this.on = onClause(this);
+		this.#logger = logger ?? new LoggerFacade(new ConsoleLogger());
+		this.router = new Router(this.#logger);
 	}	
 	
 	async execute(request: RequestContext): Promise<void> {

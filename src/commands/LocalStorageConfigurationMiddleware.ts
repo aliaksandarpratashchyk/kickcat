@@ -12,6 +12,7 @@ import type { ClassCommand } from '../cli/ClassCommand';
 import LocalStorage from '../localStorage/LocalStorage';
 import EntitySchemaRegistry from '../EntitySchemaRegistry';
 import { isUndefined } from 'underscore';
+import LoggerFacade from '../logging/LoggerFacade';
 
 @singleton()
 export default class LocalStorageConfigurationMiddleware implements ClassCommand<typeof LocalStorageConfigurationMiddleware.schema> {
@@ -25,37 +26,41 @@ export default class LocalStorageConfigurationMiddleware implements ClassCommand
 	} satisfies ClassCommandSchema;
 
 	readonly #entitySchemaRegistry: EntitySchemaRegistry;
+	readonly #logger: LoggerFacade;
 
 	constructor(
 		@inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry,
+		@inject(LoggerFacade) logger: LoggerFacade
 	) {
 		this.#entitySchemaRegistry = entitySchemaRegistry;
+		this.#logger = logger;
 	}
 
 	execute({
 		localStorage
 	}: ClassCommandOptions<typeof LocalStorageConfigurationMiddleware.schema>): void {
-		console.log(`Configuring local storage, resolving local storage path...`);
+		this.#logger.info(`Configuring local storage, resolving local storage path...`);
 
 		let storagePath = localStorage;
 
 		if (isUndefined(storagePath) || (typeof storagePath === 'string' && storagePath.trim() === '')) {
-			console.log(`Local storage path with console option is not provided, trying environment variable.`);
+			this.#logger.info(`Local storage path with console option is not provided, trying environment variable.`);
 			storagePath = process.env['KICKCAT_LOCAL_STORAGE'];
 		}
 
 		if (isUndefined(storagePath) || (typeof storagePath === 'string' && storagePath.trim() === '')) {
-			console.log(`Environment variable KICKCAT_LOCAL_STORAGE is not found, backfall to the current working directory.`);
+			this.#logger.info(`Environment variable KICKCAT_LOCAL_STORAGE is not found, backfall to the current working directory.`);
 			storagePath = process.cwd();
 		}
 
-		console.log(`Using "${storagePath}" as the local storage path.`);
+		this.#logger.info(`Using "${storagePath}" as the local storage path.`);
 
 		container.registerInstance(
 			'LocalStorage',
 			new LocalStorage(
 				storagePath,
-				this.#entitySchemaRegistry
+				this.#entitySchemaRegistry,
+				this.#logger
 			),
 		);
 	}

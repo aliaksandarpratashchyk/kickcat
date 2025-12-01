@@ -9,33 +9,43 @@ import 'reflect-metadata';
 import _package from '../package.json';
 import Application from './cli/Application';
 import HelpMiddleware from './cli/HelpMiddleware';
-import MilestoneDeleteCommand from './commands/MilestoneDeleteCommand';
-import MilestonePushAllCommand from './commands/MilestonePushAllCommand';
-import MilestonePullCommand from './commands/MilestonePullCommand';
 import 'dotenv/config';
 import type { Milestone } from './Milestone';
 import { container } from 'tsyringe';
 import RemoteMilestoneCollection from './remoteStorage/RemoteMilestoneCollection';
 import HelpCommand from './cli/HelpCommand';
 import { resolveEntitySchema } from './EntitySchema';
-import { MILESTONE } from './EntityType';
-import GitHubTokenMiddleware from './commands/GitHubTokenMiddleware';
+import { LABEL, MILESTONE } from './EntityType';
 import LocalStorageConfigurationMiddleware from './commands/LocalStorageConfigurationMiddleware';
 import RequestContext from './cli/RequestContext';
 import EntitySchemaRegistry from './EntitySchemaRegistry';
 import RemoteStorageConfigurationMiddleware from './commands/RemoteStorageConfigurationMiddleware';
 import RepairCommand from './commands/RepairCommand';
+import LoggingConfigurationMiddleware from './commands/LoggingConfigurationMiddleware';
+import EntityDeleteCommand from './commands/EntityDeleteCommand';
+import EntityPullCommand from './commands/EntityPullCommand';
+import EntityPushAllCommand from './commands/EntityPushAllCommand';
+import type { Label } from './Label';
 
 try {		
+
+	const entitySchemaRegistry = new EntitySchemaRegistry();
 
 	const milestoneSchema = await resolveEntitySchema<Milestone>(
 		MILESTONE, 
 		{
 			applicationName: _package.name,
 		});
-
-	const entitySchemaRegistry = new EntitySchemaRegistry();
+	
 	entitySchemaRegistry.add(MILESTONE, milestoneSchema);
+
+	const labelSchema = await resolveEntitySchema<Label>(
+		LABEL,
+		{
+			applicationName: _package.name,
+		});
+	
+	entitySchemaRegistry.add(LABEL, labelSchema);
 
 	container.registerInstance(EntitySchemaRegistry, entitySchemaRegistry);
 
@@ -54,6 +64,7 @@ try {
 	application.
 		on.
 		any.
+		use(LoggingConfigurationMiddleware).
 		use(HelpMiddleware);	
 
 	application.
@@ -66,22 +77,21 @@ try {
 		use(HelpCommand);	
 
 	application.
-		on('milestone delete').		
+		on('entity delete').
 		use(LocalStorageConfigurationMiddleware).
-		use(MilestoneDeleteCommand);
+		use(EntityDeleteCommand);
 
 	application.
-		on('milestone pull').			
+		on('entity pull').
 		use(LocalStorageConfigurationMiddleware).
 		use(RemoteStorageConfigurationMiddleware).
-		use(MilestonePullCommand);
+		use(EntityPullCommand);		
 
 	application.
-		on('milestone push all').		
-		use(GitHubTokenMiddleware).
+		on('entity push all').				
 		use(LocalStorageConfigurationMiddleware).
 		use(RemoteStorageConfigurationMiddleware).
-		use(MilestonePushAllCommand);		
+		use(EntityPushAllCommand);					
 
 	application.
 		on('repair').
@@ -97,6 +107,8 @@ try {
 
 } catch (error) {
 	if (typeof error === 'object' && error !== null && 'message' in error)
+		// eslint-disable-next-line no-console
 		console.error(error.message);
+	// eslint-disable-next-line no-console
 	else console.error(error);
 }

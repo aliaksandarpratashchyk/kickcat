@@ -12,6 +12,7 @@ import type { ClassCommand } from '../cli/ClassCommand';
 import LocalStorage from '../localStorage/LocalStorage';
 import EntitySchemaRegistry from '../EntitySchemaRegistry';
 import { isUndefined } from 'underscore';
+import LoggerFacade from '../logging/LoggerFacade';
 
 @singleton()
 export default class RemoteStorageConfigurationMiddleware implements ClassCommand<typeof RemoteStorageConfigurationMiddleware.schema> {
@@ -21,41 +22,49 @@ export default class RemoteStorageConfigurationMiddleware implements ClassComman
 				description: 'Remote storage path, used for debugging.',
 				type: stringType
 			},
+			gitHubToken: {
+				description: 'GitHub authentication token.',
+				type: stringType
+			},
 		},
 	} satisfies ClassCommandSchema;	
 
 	readonly #entitySchemaRegistry: EntitySchemaRegistry;
+	readonly #logger: LoggerFacade;
 
 	constructor(		
 		@inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry,
+		@inject(LoggerFacade) logger: LoggerFacade
 	) {		
 		this.#entitySchemaRegistry = entitySchemaRegistry;
+		this.#logger = logger;
 	}
-			
+				
 	execute({
 		remoteStorage
 	}: ClassCommandOptions<typeof RemoteStorageConfigurationMiddleware.schema>): void {
-		console.log(`Configuring remote storage, resolving remote storage path...`);
+		this.#logger.info(`Configuring remote storage, resolving remote storage path...`);
 
 		let storagePath = remoteStorage;
 
 		if (isUndefined(storagePath)) {
-			console.log(`Remote storage path with console option is not provided, trying environment variable.`);
+			this.#logger.info(`Remote storage path with console option is not provided, trying environment variable.`);
 			storagePath = process.env['KICKCAT_REMOTE_STORAGE'];
 		}		
 
 		if (isUndefined(storagePath)) {
-			console.log(`Environment variable KICKCAT_REMOTE_STORAGE is not found, using GitHub as remote storage.`);
+			this.#logger.info(`Environment variable KICKCAT_REMOTE_STORAGE is not found, using GitHub as remote storage.`);			
 			throw new Error(`// TODO: GitHub remote storage binding.`);			
 		}
 		else {					
-			console.warn(`Using file storage by path "${storagePath}" as remote storage.`);
+			this.#logger.warn(`Using file storage by path "${storagePath}" as remote storage.`);
 
 			container.registerInstance(
 				'RemoteStorage', 
 				new LocalStorage(
 					storagePath, 
-					this.#entitySchemaRegistry
+					this.#entitySchemaRegistry,
+					this.#logger
 				),
 			);
 		}		

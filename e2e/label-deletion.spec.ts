@@ -7,19 +7,21 @@
 import shell from "../src/shell";
 import { fake } from "../src/Fake";
 
-describe('milestone delete', () => {
+describe('Given user deleting a label', () => {
     describe.each`
-    localStorage              | expectedLocalStorage
-    ${'milestone-delete.yml'} | ${'milestone-delete-expected.yml'}
+    localStorage                  | expectedLocalStorage
+    ${'label-deletion-local.yml'} | ${'label-deletion-local-expected.yml'}
     `('when the local storage is $localStorage', ({ localStorage, expectedLocalStorage }) => {
-        it('should delete a milestone from the local storage.', async () => {                        
+        it('should delete a label from the local storage.', async () => {                        
             const localStorageSandbox = await fake(localStorage).toSandbox();
 
             try {
                 await shell(
-                    `node dist/bundle.js milestone delete 
-                    --number=2 
-                    --local-storage="${localStorageSandbox.path}"`);                
+                    `node dist/bundle.js entity delete 
+                    --local-storage="${localStorageSandbox.path}"
+                    --of=label
+                    --key=name
+                    --value=priority:high`);                
 
                 expect(await localStorageSandbox.read()).toBe(
                     await fake(expectedLocalStorage).read());

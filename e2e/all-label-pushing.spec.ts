@@ -7,13 +7,13 @@
 import shell from "../src/shell";
 import { fake } from "../src/Fake";
 
-describe('milestone push all', () => {
+describe('Given user pushing all label', () => {
     describe.each`
-    localStorage                               | remoteStorage                               | expectedLocalStorage                                | expectedRemoteStorage  
-    ${'milestone-push-all-absent-local.yml'}   | ${'milestone-push-all-absent-remote.yml'}   | ${'milestone-push-all-absent-local-expected.yml'}   | ${'milestone-push-all-absent-remote-expected.yml'}    
-    ${'milestone-push-all-obsolete-local.yml'} | ${'milestone-push-all-obsolete-remote.yml'} | ${'milestone-push-all-obsolete-local-expected.yml'} | ${'milestone-push-all-obsolete-remote-expected.yml'}    
-    ${'milestone-push-all-outdated-local.yml'} | ${'milestone-push-all-outdated-remote.yml'} | ${'milestone-push-all-outdated-local-expected.yml'} | ${'milestone-push-all-outdated-remote-expected.yml'}    
-    ${'milestone-push-all-conflict-local.yml'} | ${'milestone-push-all-conflict-remote.yml'} | ${'milestone-push-all-conflict-local-expected.yml'} | ${'milestone-push-all-conflict-remote-expected.yml'}    
+    localStorage                              | remoteStorage                              | expectedLocalStorage                               | expectedRemoteStorage  
+    ${'all-label-pushing-absent-local.yml'}   | ${'all-label-pushing-absent-remote.yml'}   | ${'all-label-pushing-absent-local-expected.yml'}   | ${'all-label-pushing-absent-remote-expected.yml'}    
+    ${'all-label-pushing-obsolete-local.yml'} | ${'all-label-pushing-obsolete-remote.yml'} | ${'all-label-pushing-obsolete-local-expected.yml'} | ${'all-label-pushing-obsolete-remote-expected.yml'}    
+    ${'all-label-pushing-outdated-local.yml'} | ${'all-label-pushing-outdated-remote.yml'} | ${'all-label-pushing-outdated-local-expected.yml'} | ${'all-label-pushing-outdated-remote-expected.yml'}    
+    ${'all-label-pushing-conflict-local.yml'} | ${'all-label-pushing-conflict-remote.yml'} | ${'all-label-pushing-conflict-local-expected.yml'} | ${'all-label-pushing-conflict-remote-expected.yml'}    
     `('when the local storage is $localStorage and the remote storage is $remoteStorage', 
         ({ localStorage, remoteStorage, expectedLocalStorage, expectedRemoteStorage }) => {
         it('should push all from the local to the remote storage.', async () => {                        
@@ -22,9 +22,10 @@ describe('milestone push all', () => {
 
             try {
                 await shell(
-                    `node dist/bundle.js milestone push all                     
+                    `node dist/bundle.js entity push all                     
                     --local-storage="${localStorageSandbox.path}"
-                    --remote-storage="${remoteStorageSandbox.path}"`);                
+                    --remote-storage="${remoteStorageSandbox.path}"
+                    --of=label`);                
 
                 expect(await localStorageSandbox.read()).toBe(
                     await fake(expectedLocalStorage).read());
