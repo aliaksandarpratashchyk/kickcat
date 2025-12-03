@@ -19,6 +19,7 @@ properties:
       - Used as a stable reference for updates  
       - Do not edit manually
     x-kickcat-unique: true
+    x-kickcat-primary-key: true
 
   title:
     order: 2

@@ -13,3 +13,23 @@ description: Nice-to-have, no urgency.
 name: priority:medium
 color: 00ffff
 description: Normal importance tasks.
+
+---
+
+# yaml-language-server: $schema=../../schemas/issue.schema.yml
+# hash: b4203b08b3b12aa8b051109dba46ec31
+
+number: 1
+title: 📝 Prepare Full Shopping List
+description: |
+  Create a complete, categorized shopping list before going to the supermarket.
+
+  ## Subtasks
+  - Review pantry and fridge.
+  - Check for missing essentials.
+  - Plan categories: produce, meat, dairy, household goods.
+
+  ## Outcomes
+  - List stored in app.
+  - Categories sorted.
+  - No duplicated entries.

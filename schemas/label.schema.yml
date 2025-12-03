@@ -22,6 +22,7 @@ properties:
 
       This name must be **unique** per repository.
     x-kickcat-unique: true
+    x-kickcat-primary-key: true
 
   color:
     order: 2

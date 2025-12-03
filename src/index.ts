@@ -15,7 +15,7 @@ import { container } from 'tsyringe';
 import RemoteMilestoneCollection from './remoteStorage/RemoteMilestoneCollection';
 import HelpCommand from './cli/HelpCommand';
 import { resolveEntitySchema } from './EntitySchema';
-import { LABEL, MILESTONE } from './EntityType';
+import { ISSUE, LABEL, MILESTONE } from './EntityType';
 import LocalStorageConfigurationMiddleware from './commands/LocalStorageConfigurationMiddleware';
 import RequestContext from './cli/RequestContext';
 import EntitySchemaRegistry from './EntitySchemaRegistry';
@@ -26,6 +26,7 @@ import EntityDeleteCommand from './commands/EntityDeleteCommand';
 import EntityPullCommand from './commands/EntityPullCommand';
 import EntityPushAllCommand from './commands/EntityPushAllCommand';
 import type { Label } from './Label';
+import type { Issue } from './Issue';
 
 try {		
 
@@ -46,6 +47,14 @@ try {
 		});
 	
 	entitySchemaRegistry.add(LABEL, labelSchema);
+
+	const issueSchema = await resolveEntitySchema<Issue>(
+		ISSUE,
+		{
+			applicationName: _package.name,
+		});
+	
+	entitySchemaRegistry.add(ISSUE, issueSchema);
 
 	container.registerInstance(EntitySchemaRegistry, entitySchemaRegistry);
 

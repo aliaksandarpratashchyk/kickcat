@@ -4,7 +4,7 @@
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
 
-import { isNumber, isString, isUndefined } from "underscore";
+import { isNull, isNumber, isString, isUndefined } from "underscore";
 import type { Entity } from "./Entity";
 import type EntitySchemaRegistry from "./EntitySchemaRegistry";
 import type { EntityStorageCookie } from "./EntityStorageCookie";
@@ -44,9 +44,9 @@ export default class EntityRegistry<
     }
 
     set<TEntity extends Entity>(entry: EntityStorageEntry<TEntity, TEntityStorageCookie>): void {
-        this.#all.add(entry);
-        this.#setByType(entry.type, entry);
-        this.#setIndex(entry.type, entry);
+        this.#all.add(unsafe(entry));
+        this.#setByType(entry.schema.type, unsafe(entry));
+        this.#setIndex(entry.schema.type, unsafe(entry));
     }
 
     #setByType(of: EntityType, entry: EntityStorageEntry<Entity, TEntityStorageCookie>): void {
@@ -58,6 +58,7 @@ export default class EntityRegistry<
         entries.add(entry);
     }
 
+    // eslint-disable-next-line max-statements
     #setIndex(of: EntityType, entry: EntityStorageEntry<Entity, TEntityStorageCookie>): void {
         const byType = this.#index.get(of) ??
             new Map<string, Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>>();
@@ -70,7 +71,9 @@ export default class EntityRegistry<
             throw new Error(`Can't find "${of}" schema.`);
 
         for (const [propertyKey, property] of Object.entries(schema.properties)) {
-            if (property.unique) {
+            if (property.primaryKey ||
+                property.unique || 
+                isNull(entry.primaryKey) && property.newUnique) {
                 const byPropertyKey = byType.get(propertyKey) ??
                     new Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>();
 
@@ -80,7 +83,7 @@ export default class EntityRegistry<
 
                 if (isNumber(propertyValue) || isString(propertyValue))
                     byPropertyKey.set(propertyValue, entry);
-            }
+            }            
         }
     }
 }

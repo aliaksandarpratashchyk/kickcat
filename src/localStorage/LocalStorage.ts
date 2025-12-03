@@ -1,5 +1,5 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.4.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
@@ -31,14 +31,14 @@ export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
 	readonly entitySchemaRegistry: EntitySchemaRegistry;
 	readonly #entityRegistry: EntityRegistry<LocalStorageCookie>;
 	readonly #logger: LoggerFacade;
-	#fetched = false;		
+	#fetched = false;
 	get fetched(): boolean {
 		return this.#fetched;
 	}
-	readonly #files = new Map<string, LocalStorageFile>();		
+	readonly #files = new Map<string, LocalStorageFile>();
 
 	constructor(
-		storagePath: string, 
+		storagePath: string,
 		@inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry,
 		@inject(LoggerFacade) logger: LoggerFacade
 	) {
@@ -46,31 +46,31 @@ export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
 		this.entitySchemaRegistry = entitySchemaRegistry;
 		this.#entityRegistry = new EntityRegistry<LocalStorageCookie>(this.entitySchemaRegistry);
 		this.#logger = logger;
-	}		
+	}
 
-	async one<TEntity extends Entity>(of: EntityType, where: Partial<TEntity>): 
+	async one<TEntity extends Entity>(of: EntityType, where: Partial<TEntity>):
 		Promise<EntityStorageEntry<TEntity, LocalStorageCookie> | undefined> {
 
 		await this.#reindex();
-		return this.#entityRegistry.one<TEntity>(of, where);			
+		return this.#entityRegistry.one<TEntity>(of, where);
 	}
 
 	async *all<TEntity extends Entity>(of?: EntityType):
-			AsyncIterable<EntityStorageEntry<TEntity, LocalStorageCookie>> {
+		AsyncIterable<EntityStorageEntry<TEntity, LocalStorageCookie>> {
 
 		await this.#reindex();
 
 		for (const entry of this.#entityRegistry.all<TEntity>(of))
-			yield entry;		
-	}	
-
-	async new<TEntity extends Entity>(of: EntityType, entity: TEntity): 
-		Promise<EntityStorageEntry<TEntity, LocalStorageCookie>> {
-		
-		return (await this.#getOrphanage(of)).new<TEntity>(of, entity);		
+			yield entry;
 	}
 
-	async commit(): Promise<void> {	
+	async new<TEntity extends Entity>(of: EntityType, entity: TEntity):
+		Promise<EntityStorageEntry<TEntity, LocalStorageCookie>> {
+
+		return (await this.#getOrphanage(of)).new<TEntity>(of, entity);
+	}
+
+	async commit(): Promise<void> {
 		this.#logger.debug(`Commiting local storage changes...`);
 
 		await this.#fetch();
@@ -78,40 +78,42 @@ export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
 		for (const file of this.#files.values()) {
 			// eslint-disable-next-line no-await-in-loop
 			await file.commit();
-		}			
-	}			
+		}
+	}
 
 	async #fetch(): Promise<void> {
 		if (this.#fetched)
 			return;
-		
-		(await dig(this.storagePath)).filter(isYAMLFile).forEach(filePath => {			
+
+		(await dig(this.storagePath)).filter(isYAMLFile).forEach(filePath => {
 			this.#files.set(
-				filePath, 
+				filePath,
 				new LocalStorageFile(
-					{ filePath }, 
-					this.entitySchemaRegistry, 
-					this.#logger));
-		});		
+					{ filePath },
+					this.entitySchemaRegistry,
+					this.#logger,
+					this));
+		});
 
 		this.#fetched = true;
 	}
 
-	async #getOrphanage(entityType: EntityType): Promise<LocalStorageFile> {		
+	async #getOrphanage(entityType: EntityType): Promise<LocalStorageFile> {
 		const orphanagePath = await this.#resolveOrphanagePath(entityType);
-		
+
 		if (this.#files.has(orphanagePath))
 			return nonNullable(this.#files.get(orphanagePath));
 
 		const orphanage = new LocalStorageFile({
-			filePath: orphanagePath 
+			filePath: orphanagePath
 		},
-		this.entitySchemaRegistry, 
-		this.#logger);
+			this.entitySchemaRegistry,
+			this.#logger,
+			this);
 
 		this.#files.set(orphanagePath, orphanage);
 		return orphanage;
-	}		
+	}
 
 	// eslint-disable-next-line max-statements
 	async #resolveOrphanagePath(entityType: EntityType): Promise<string> {
@@ -143,7 +145,7 @@ export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
 				);
 			}
 		}
-		
+
 		throw new Error(`Can't resolve path to storage for ${entityType}.`);
 	}
 

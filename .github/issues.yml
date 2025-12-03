@@ -6,8 +6,7 @@ labels:
   - "scope:core"
   - "scope:workflow"
   - "priority:high"
-description: |
-  ### Short Description
+description: |  
   Establish the baseline folder structure, core utilities, shared schemas, and initial workflow templates.
 
   ### Goal
@@ -36,14 +35,13 @@ labels:
   - "priority:high"
 dependencies:
   - "setup"
-description: |
-  ### Short Description
+description: |  
   Implement milestone parsing, hashing, and GitHub synchronization logic.
 
-  ### Goal
+  ## Goal
   Make milestones fully declarative with auto-creation, updating, and conflict detection.
 
-  ### Subtasks
+  ## Subtasks
   - Parse milestone YAML (file or folder)
   - Extract key from square brackets in title
   - Create/update/delete milestones based on diffing
@@ -52,7 +50,7 @@ description: |
   - Add GitHub summary diffs and skipped table
   - Implement merge-conflict comments into YAML when GitHub differs
 
-  ### Outcomes
+  ## Outcomes
   - Complete IAC-based milestone governance
   - Accurate diff-based updates
   - Change-safe syncing with conflict protection
@@ -68,21 +66,20 @@ labels:
   - "priority:medium"
 dependencies:
   - "setup"
-description: |
-  ### Short Description
+description: |  
   Implement YAML-driven label definitions and synchronization workflow.
 
-  ### Goal
+  ## Goal
   Ensure labels are fully declarative, grouped, and consistently applied across the repo.
 
-  ### Subtasks
+  ## Subtasks
   - Parse label YAML file
   - Create/update/delete labels on GitHub
   - Support grouped categories (priority, type, scope)
   - Produce diff summary and skipped table
   - Ensure stable color & description updates
 
-  ### Outcomes
+  ## Outcomes
   - Labels fully controlled via YAML
   - Clean, predictable taxonomy for CI, epics, milestones
 
@@ -99,14 +96,13 @@ dependencies:
   - "setup"
   - "ms-sync"
   - "label-sync"
-description: |
-  ### Short Description
+description: |  
   Build the declarative issue/epic creation and update system, including dependencies and label/milestone synchronization.
 
-  ### Goal
+  ## Goal
   Represent epics, tasks, and sub-issues in YAML and sync them safely to GitHub.
 
-  ### Subtasks
+  ## Subtasks
   - Parse issue definitions (epics + subtasks)
   - Apply prefix key for stable identity
   - Sync labels, milestones, dependencies
@@ -114,7 +110,7 @@ description: |
   - Write back updated data to YAML
   - Provide GitHub summary with diff indicators
 
-  ### Outcomes
+  ## Outcomes
   - Declarative issue management
   - Reproducible epics and hierarchical structures
   - Diff-driven updates with no accidental overrides
@@ -130,21 +126,20 @@ labels:
   - "priority:medium"
 dependencies:
   - "setup"
-description: |
-  ### Short Description
+description: |  
   Implement declarative GitHub Projects (Classic and V2) synchronization.
 
-  ### Goal
+  ## Goal
   Automatically configure columns, status fields, descriptions, and settings based on YAML.
 
-  ### Subtasks
+  ## Subtasks
   - Parse project definitions from file or folder
   - Detect classic vs V2 by project number
   - Sync description, columns, fields, views
   - Show diffs in GitHub summary
   - Support multi-project and cross-repo layouts
 
-  ### Outcomes
+  ## Outcomes
   - Fully automated project structure
   - Consistent fields across workflows
   - Reusable IAC-style project configuration

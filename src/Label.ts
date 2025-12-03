@@ -4,7 +4,9 @@
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
 
-export interface Label {
+import type { Entity } from "./Entity";
+
+export interface Label extends Entity {
     description?: string;
     color: string;
     name: string;

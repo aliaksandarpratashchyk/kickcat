@@ -5,12 +5,15 @@
  */
 
 import type { Entity } from "./Entity";
+import type EntitySchemaRegistry from "./EntitySchemaRegistry";
 import type { EntityStorageCookie } from "./EntityStorageCookie";
 import type EntityStorageEntry from "./EntityStorageEntry";
 import type { EntityType } from "./EntityType";
 
 export interface EntityStorage<
 	TEntityStorageCookie extends EntityStorageCookie = EntityStorageCookie> {
+
+	readonly entitySchemaRegistry: EntitySchemaRegistry;
 
     one: <TEntity extends Entity>(of: EntityType, where: Partial<TEntity>) => 
 		Promise<EntityStorageEntry<TEntity, TEntityStorageCookie> | undefined>;    

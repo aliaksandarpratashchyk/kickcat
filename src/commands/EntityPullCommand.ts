@@ -1,5 +1,5 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.4.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
@@ -82,7 +82,7 @@ export default class EntityPullCommand implements ClassCommand<typeof EntityPull
 				hash(localEntry.entity) !== localEntry.hash)
 				this.#logger.warn(`The saved hash of the local ${of} "${localEntry.hash}" don't match its calculated hash "${hash(localEntry.entity)}", milestone probably has not commited local changes, which will be overriten with remote label.`);
 
-			localEntry.change(remoteEntry.entity);
+			localEntry.substitute(remoteEntry.entity);
 		}
 
 		this.#logger.info(`Commiting changes to the local storage.`);

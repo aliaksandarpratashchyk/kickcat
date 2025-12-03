@@ -22,3 +22,25 @@ description: Normal importance tasks.
 name: priority:high
 color: ff0000
 description: Should be worked on soon; blocks major features.
+
+---
+
+# yaml-language-server: $schema=../../schemas/issue.schema.yml
+# hash: ec5ae196f88510e3cbc0d05090c319e2
+
+number: 1
+title: 📝 Prepare Full Shopping List
+labels:
+  - priority:high
+description: |
+  Create a complete, categorized shopping list before going to the supermarket.
+
+  ## Subtasks
+  - Review pantry and fridge.
+  - Check for missing essentials.
+  - Plan categories: produce, meat, dairy, household goods.
+
+  ## Outcomes
+  - List stored in app.
+  - Categories sorted.
+  - No duplicated entries.

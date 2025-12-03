@@ -4,9 +4,10 @@
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
 
+import type { Entity } from './Entity';
 import type { MilestoneState } from './MilestoneState';
 
-export interface Milestone {
+export interface Milestone extends Entity {
 	description?: string;
 	dueDate?: string;
 	number?: number;

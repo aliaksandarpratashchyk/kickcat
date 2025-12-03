@@ -1,5 +1,5 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.4.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
@@ -28,6 +28,7 @@ import EntityRegistry from '../EntityRegistry';
 import unsafe from '../unsafe';
 import type EntitySchema from '../EntitySchema';
 import LoggerFacade from '../logging/LoggerFacade';
+import type LocalStorage from './LocalStorage';
 
 export interface LocalStorageFileConfiguration {
     filePath: string;
@@ -57,17 +58,21 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
     readonly #entityRegistry: EntityRegistry<LocalStorageCookie>;
     readonly #logger: LoggerFacade;
     #eof = false;
+    readonly storage: LocalStorage;
 
+    // eslint-disable-next-line @typescript-eslint/max-params
     constructor({
         filePath
     }: LocalStorageFileConfiguration,
         @inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry,
-        @inject(LoggerFacade) logger: LoggerFacade
+        @inject(LoggerFacade) logger: LoggerFacade,
+        storage: LocalStorage,
     ) {
         this.filePath = filePath;
         this.entitySchemaRegistry = entitySchemaRegistry;
         this.#entityRegistry = new EntityRegistry<LocalStorageCookie>(this.entitySchemaRegistry);
         this.#logger = logger;
+        this.storage = storage;
     }
 
     async one<TEntity extends Entity>(of: EntityType, where: Partial<TEntity>):
@@ -90,13 +95,19 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
         of: EntityType,
         entity: TEntity): Promise<EntityStorageEntry<TEntity, LocalStorageCookie>> {
 
+        const schema = unsafe<EntitySchema<TEntity>>(this.entitySchemaRegistry.get(of));
+
+        if (isUndefined(schema))
+            throw new Error(`Can't find "${of}" entity schema.`);
+
         const entry = new EntityStorageEntry<TEntity, LocalStorageCookie>({ 
-            type: of, 
+            schema, 
             entity, 
             state: NEW,
             cookie: {
                 file: this
-            }
+            },    
+            storage: this.storage,        
          });
 
         const entitySchema = this.entitySchemaRegistry.get(of);
@@ -114,8 +125,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 
         await this.#reindex();
 
-        const entries = this.#entityRegistry.all();
-        const isSingleType = Object.entries(groupBy(entries, entry => entry.type)).length <= 1;
+        const entries = this.#entityRegistry.all();        
         const hasSomethingToCommit = entries.some(
             (entry) => [DIRTY, KILLED, NEW].includes(entry.state) || hash(entry.entity) !== entry.hash);
 
@@ -131,7 +141,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
                 const documents = sortBy(
                     toCommit,
                     (entry) => entry.cookie.index ?? Number.MAX_SAFE_INTEGER).
-                    map((entry) => this.#toDocument(entry, !isSingleType));
+                    map((entry) => this.#toDocument(entry));
 
                 const yaml = documents
                     .map((document) => document.toString().trimEnd())
@@ -204,14 +214,15 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
                     savedHash = undefined;
 
                 const entry = new EntityStorageEntry({
-                        type: entitySchema.type,
+                        schema: entitySchema,
                         entity,                     
                         state: CLEAN,
                         hash: savedHash,
                         cookie: {
                             file: this,
                             index
-                        }
+                        },
+                        storage: this.storage,
                     });                
 
                 this.#entityRegistry.set(
@@ -223,16 +234,15 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
         this.#eof = true;
     }    
 
-    #toDocument(entry: EntityStorageEntry, writeType = false): Document {
-        const schema = this.entitySchemaRegistry.get(entry.type);
+    #toDocument(entry: EntityStorageEntry): Document {
+        const schema = this.entitySchemaRegistry.get(entry.schema.type);
 
         if (isUndefined(schema))
             throw new Error(`Can't find schema "${schema}".`);
 
         const document = new Document();
         const schemaPath = this.#relativePosix(dirname(this.filePath), schema.filePath);
-        document.commentBefore = [
-            ...(writeType ? [` type: ${entry.type}`]: [ ]),
+        document.commentBefore = [            
             ` yaml-language-server: $schema=${schemaPath}`,
             ` hash: ${hash(entry.entity)}`
         ].join('\n');
@@ -248,20 +258,17 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
             entries(entitySchema.properties).
             sort(([, left], [, right]) => left.order - right.order).
             map(([key]) => key);
-        const extraKeys = Object.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            keys(entity as Record<string, unknown>).
+        const extraKeys = Object.            
+            keys(entity).
             filter((key) => !orderedKeys.includes(key)).
             toSorted();
 
-        for (const key of [...orderedKeys, ...extraKeys]) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            if (!(key in (entity as Record<string, unknown>)))
+        for (const key of [...orderedKeys, ...extraKeys]) {        
+            if (!(key in entity))
                 // eslint-disable-next-line no-continue
                 continue;
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const value = (entity as Record<string, unknown>)[key];
+            const value = entity[key];
             map.add({ key, value: toYAML(value) });
         }
 

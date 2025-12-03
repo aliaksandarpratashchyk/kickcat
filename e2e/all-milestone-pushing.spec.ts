@@ -1,5 +1,5 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.4.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
  * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
  */
@@ -7,7 +7,7 @@
 import shell from "../src/shell";
 import { fake } from "../src/Fake";
 
-describe('Given user pushing all milestone', () => {
+describe('Given user force pushing all milestone', () => {
     describe.each`
     localStorage                                  | remoteStorage                                  | expectedLocalStorage                                   | expectedRemoteStorage  
     ${'all-milestone-pushing-absent-local.yml'}   | ${'all-milestone-pushing-absent-remote.yml'}   | ${'all-milestone-pushing-absent-local-expected.yml'}   | ${'all-milestone-pushing-absent-remote-expected.yml'}    

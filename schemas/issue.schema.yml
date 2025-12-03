@@ -2,8 +2,7 @@ $schema: "http://json-schema.org/draft-07/schema#"
 title: "GitHub Issue Schema"
 type: object
 required:
-  - title
-  - milestone
+  - title  
   - description
 additionalProperties: false
 
@@ -21,6 +20,7 @@ properties:
       - Used for linking & referencing  
       - Do not modify manually
     x-kickcat-unique: true
+    x-kickcat-primary-key: true
 
   title:
     order: 2
@@ -35,6 +35,7 @@ properties:
       ```yaml
       title: "Implement milestone synchronization"
       ```
+    x-kickcat-new-unique: true
 
   milestone:
     order: 3
@@ -55,6 +56,7 @@ properties:
     oneOf:
       - type: number
       - type: string
+    x-kickcat-reference: milestone
 
   labels:
     order: 4
@@ -74,6 +76,7 @@ properties:
     items:
       type: string
     default: []
+    x-kickcat-reference: label
 
   dependencies:
     order: 5
@@ -97,6 +100,7 @@ properties:
         - type: number
         - type: string
     default: []
+    x-kickcat-reference: issue
 
   description:
     order: 6

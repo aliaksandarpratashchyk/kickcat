@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../../schemas/milestone.schema.yml
+# hash: 4fa572887b9ba72d4e9dc8d9b9f1ddc4
+
+number: 1
+title: 📝 Planning the Shopping List
+dueDate: 2024-01-05
+state: closed
+description: |
+  Prepare the full list of items before going to the supermarket.
+
+  ### Goal
+  Ensure nothing is forgotten and optimize shopping route inside store.
+
+  ### Outcomes
+  - Complete, categorized shopping list.
+  - Estimated budget calculated.
+  - Special offers noted.

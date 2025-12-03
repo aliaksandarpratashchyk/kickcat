@@ -19,7 +19,7 @@ description: |
 ---
 
 # yaml-language-server: $schema=../../schemas/milestone.schema.yml
-# hash: c3b2f61e5f0d49ad1cfe3bb9a4db11d3
+# hash: e9333215e595276920335441b37accb6
 
 number: 2
 title: 🍎 Fresh Produce Selection
@@ -35,3 +35,23 @@ description: |
   - Basket filled with required produce items.
   - Items inspected for ripeness and quality.
   - Substitutions made if necessary.
+
+---
+
+# yaml-language-server: $schema=../../schemas/issue.schema.yml
+# hash: dd98e77b43dc10dee6b3ef31d67798f7
+
+number: 2
+title: 🍎 Select Fresh Produce
+milestone: 2
+description: |
+  Pick all required fruits and vegetables in the fresh produce section.
+
+  ## Subtasks
+  - Check for ripeness and quality.
+  - Replace out-of-stock items with alternatives.
+  - Compare prices for best value.
+
+  ## Outcomes
+  - All produce items collected.
+  - All inspected for quality.
