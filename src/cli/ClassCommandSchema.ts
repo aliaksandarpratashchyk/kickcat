@@ -1,15 +1,23 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
 import type { Type, ValueType } from './Type';
 
-export type ClassCommandOptions<T extends ClassCommandSchema> = { [K in OptionalKeys<T>]?: ValueType<T['parameters'][K]['type']> } & {
+/**
+ * Strongly typed options bag built from a command schema.
+ */
+export type ClassCommandOptions<T extends ClassCommandSchema> = {
+	[K in OptionalKeys<T>]?: ValueType<T['parameters'][K]['type']>;
+} & {
 	[K in RequiredKeys<T>]: ValueType<T['parameters'][K]['type']>;
 };
 
+/**
+ * Shape of a single CLI parameter definition.
+ */
 export interface ClassCommandParameterSchema {
 	defaultValue?: ValueType<Type>;
 	description?: string;
@@ -17,8 +25,11 @@ export interface ClassCommandParameterSchema {
 	type: Type;
 }
 
+/**
+ * Schema describing a CLI command and its parameters.
+ */
 export interface ClassCommandSchema {
-	description?: string;	
+	description?: string;
 	parameters: Record<string, ClassCommandParameterSchema>;
 }
 

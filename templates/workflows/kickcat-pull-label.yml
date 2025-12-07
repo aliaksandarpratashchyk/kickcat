@@ -1,0 +1,72 @@
+# Keep KickCat labels in sync with GitHub label events
+name: kickcat-sync-label
+
+on:
+  label:
+    types: [created, edited, deleted]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      KICKCAT_LOCAL_STORAGE: .github
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync label into repository storage
+        env:
+          ACTION: ${{ github.event.action }}
+          LABEL_NAME: ${{ github.event.label.name }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${LABEL_NAME:-}" ]; then
+            echo "Label name is missing; skipping."
+            exit 0
+          fi
+
+          case "${ACTION}" in
+            created|edited)
+              npx @aliaksandarpratashchyk/kickcat entity pull --of=label --key=name --value="${LABEL_NAME}"
+              ;;
+            deleted)
+              npx @aliaksandarpratashchyk/kickcat entity delete --of=label --key=name --value="${LABEL_NAME}"
+              ;;
+            *)
+              echo "Label action ${ACTION} not handled; skipping."
+              ;;
+          esac
+
+      - name: Commit changes
+        id: commit
+        env:
+          ACTION: ${{ github.event.action }}
+          LABEL_NAME: ${{ github.event.label.name }}
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- .github; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github
+          git commit -m "chore: sync label ${LABEL_NAME} (${ACTION})"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push changes
+        if: steps.commit.outputs.has_changes == 'true'
+        run: git push

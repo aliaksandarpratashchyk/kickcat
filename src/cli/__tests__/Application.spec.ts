@@ -1,27 +1,29 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
 import Application from '../Application';
+import booleanType from '../BooleanType';
 import Command from '../Command';
 import CommandOption from '../CommandOption';
-import booleanType from '../BooleanType';
 import RequestContext from '../RequestContext';
 import Route from '../Route';
 import stringType from '../StringType';
 
-describe(Application.name, () => {	
+describe(Application.name, () => {
 	describe(Application.prototype.execute.name, () => {
 		it(`should execute a command registered on a matching route.`, async () => {
 			const action = jest.fn();
 			const command = new Command(action);
-			command.options.add(new CommandOption({
-				tag: 'bar',
-				description: 'bar option',
-				type: stringType,
-			}));
+			command.options.add(
+				new CommandOption({
+					description: 'bar option',
+					tag: 'bar',
+					type: stringType,
+				}),
+			);
 			const app = new Application({
 				name: 'kickhub',
 			});
@@ -30,7 +32,7 @@ describe(Application.name, () => {
 
 			await app.execute(request);
 
-			expect(action).toHaveBeenCalledWith({ '--bar': 'baz' });
+			expect(action).toHaveBeenCalledWith({ 'bar': 'baz' });
 			expect(request.route?.path).toBe('foo');
 		});
 
@@ -48,19 +50,23 @@ describe(Application.name, () => {
 		describe('when a required parameter is missing', () => {
 			it('should throw an error.', async () => {
 				const command = new Command(jest.fn());
-				command.options.add(new CommandOption({
-					tag: 'requiredFlag',
-					description: 'required flag',
-					required: true,
-					type: booleanType,
-				}));
+				command.options.add(
+					new CommandOption({
+						description: 'required flag',
+						required: true,
+						tag: 'requiredFlag',
+						type: booleanType,
+					}),
+				);
 				const app = new Application({
 					name: 'kickhub',
 				});
 				app.on('foo').use(command);
 				const request = new RequestContext(['foo']);
 
-				await expect(app.execute(request)).rejects.toThrow('Parameter "--required-flag" is required.');
+				await expect(app.execute(request)).rejects.toThrow(
+					'Parameter "--required-flag" is required.',
+				);
 			});
 		});
 

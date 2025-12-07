@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../schemas/milestone.schema.yml
-title: "🚀 Project Setup"
+title: '🚀 Project Setup'
 description: |
   ### Description
   Initialize the repository structure, automation scripts, workflow templates, and shared schemas.
@@ -14,9 +14,8 @@ description: |
   - GitHub Actions CI bootstrapped
 
 ---
-
 # yaml-language-server: $schema=../schemas/milestone.schema.yml
-title: "🧩 Milestones Sync"
+title: '🧩 Milestones Sync'
 description: |
   ### Description
   Implement workflows and scripts that read local milestone YAML files and synchronize them with GitHub milestones.
@@ -33,11 +32,10 @@ description: |
   - Skip unchanged milestones and generate GitHub summary table
   - Remove GitHub milestones not defined in YAML
   - Perform conflict detection when GitHub and file diverge
-  
----
 
+---
 # yaml-language-server: $schema=../schemas/milestone.schema.yml
-title: "🏷️ Labels Sync"
+title: '🏷️ Labels Sync'
 description: |
   ### Description
   Synchronize labels from YAML definitions with GitHub repository labels.
@@ -54,9 +52,8 @@ description: |
   - Produce diff summaries and skipped tables
 
 ---
-
 # yaml-language-server: $schema=../schemas/milestone.schema.yml
-title: "📦 Issues Sync"
+title: '📦 Issues Sync'
 description: |
   ### Description
   Implement issue creation and update logic based on declarative YAML/JSON definitions.
@@ -73,9 +70,8 @@ description: |
   - Optional issue removal when not present in definitions
 
 ---
-
 # yaml-language-server: $schema=../schemas/milestone.schema.yml
-title: "📊 Project Sync"
+title: '📊 Project Sync'
 description: |
   ### Description
   Synchronize GitHub Projects (Classic and Project V2) using a declarative YAML schema.
@@ -93,9 +89,8 @@ description: |
   - Support both single-project and multi-project definitions
 
 ---
-
 # yaml-language-server: $schema=../schemas/milestone.schema.yml
-title: "🔁 Full Automation Pipeline"
+title: '🔁 Full Automation Pipeline'
 description: |
   ### Description
   Combine labels, milestones, issues, and project sync into a single orchestrated reusable pipeline.

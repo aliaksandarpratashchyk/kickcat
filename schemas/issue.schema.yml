@@ -1,18 +1,16 @@
-$schema: "http://json-schema.org/draft-07/schema#"
-title: "GitHub Issue Schema"
+$schema: 'http://json-schema.org/draft-07/schema#'
+title: 'GitHub Issue Schema'
 type: object
 required:
-  - title  
-  - description
+  - title
 additionalProperties: false
 
 properties:
-
   number:
     order: 1
     type: number
     doNotSuggest: true
-    description: "GitHub issue number assigned automatically."
+    description: 'GitHub issue number assigned automatically.'
     markdownDescription: |
       **Internal GitHub issue number.**
 
@@ -25,7 +23,7 @@ properties:
   title:
     order: 2
     type: string
-    description: "Issue title."
+    description: 'Issue title.'
     markdownDescription: |
       **Issue title.**
 
@@ -39,14 +37,14 @@ properties:
 
   milestone:
     order: 3
-    description: "Milestone reference (number or key/title)."
+    description: 'Milestone reference (number or key/title).'
     markdownDescription: |
       **Milestone reference for this issue.**
 
       Accepts either:
       - A **number** — GitHub milestone number  
       - A **string** — milestone key or title  
-      
+
       Examples:
       ```yaml
       milestone: 3         # GitHub milestone #3
@@ -61,7 +59,7 @@ properties:
   labels:
     order: 4
     type: array
-    description: "List of GitHub label names."
+    description: 'List of GitHub label names.'
     markdownDescription: |
       **Labels assigned to the issue.**
 
@@ -81,7 +79,7 @@ properties:
   dependencies:
     order: 5
     type: array
-    description: "List of dependent issues (string or number)."
+    description: 'List of dependent issues (string or number).'
     markdownDescription: |
       **Dependencies for this issue.**
 
@@ -102,11 +100,40 @@ properties:
     default: []
     x-kickcat-reference: issue
 
-  description:
+  state:
     order: 6
     type: string
+    description: 'Issue state: open or closed.'
+    markdownDescription: |
+      **GitHub Issue State.**
+
+      Represents whether the issue is currently **open** or **closed**.
+
+      Allowed values:
+      - `open`
+      - `closed`
+
+      Matches GitHub API behavior (IssueState enum).
+    enum:
+      - open
+      - closed
+    enumDescriptions:
+      - 'Open issue'
+      - 'Closed issue'
+
+    markdownEnumDescriptions:
+      - |
+        **Open issue.**  
+        Active and not yet completed.
+      - |
+        **Closed issue.**  
+        Finished or archived.
+
+  description:
+    order: 8
+    type: string
     format: textarea
-    description: "Full issue description."
+    description: 'Full issue description.'
     markdownDescription: |
       **Full issue description (Markdown supported).**
 
@@ -128,11 +155,11 @@ properties:
       ```
 
 defaultSnippets:
-  - label: "Issue Template"
-    description: "Insert a standard issue structure."
+  - label: 'Issue Template'
+    description: 'Insert a standard issue structure.'
     body:
-      title: "$1"
-      milestone: "$2"
+      title: '$1'
+      milestone: '$2'
       labels: []
       dependencies: []
-      description: "$3"
+      description: '$3'

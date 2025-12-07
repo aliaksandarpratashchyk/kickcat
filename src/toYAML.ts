@@ -1,19 +1,21 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
 import { type Node, Scalar, YAMLMap, YAMLSeq } from 'yaml';
 
 import nonNullable from './nonNullable';
 
+/**
+ * Converts a JS value into a YAML AST node while preserving ordering for objects.
+ */
 export default function toYAML(value: unknown): Node {
 	if (typeof value === 'string') {
 		const scalar = new Scalar(value);
 
-		if (value.includes('\n'))
-			scalar.type = Scalar.BLOCK_LITERAL;
+		if (value.includes('\n')) scalar.type = Scalar.BLOCK_LITERAL;
 
 		return scalar;
 	}

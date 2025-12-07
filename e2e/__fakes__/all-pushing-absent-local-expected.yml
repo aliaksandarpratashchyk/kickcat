@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=../../schemas/issue.schema.yml
+# hash: b4203b08b3b12aa8b051109dba46ec31
+
+number: 1
+title: 📝 Prepare Full Shopping List
+description: |
+  Create a complete, categorized shopping list before going to the supermarket.
+
+  ## Subtasks
+  - Review pantry and fridge.
+  - Check for missing essentials.
+  - Plan categories: produce, meat, dairy, household goods.
+
+  ## Outcomes
+  - List stored in app.
+  - Categories sorted.
+  - No duplicated entries.
+
+---
+# yaml-language-server: $schema=../../schemas/issue.schema.yml
+# hash: f01f95b22bcb55e990011f02cc0f6c9a
+
+title: 🍎 Select Fresh Produce
+milestone: 🍎 Fresh Produce Selection
+labels:
+  - priority:high
+dependencies:
+  - 1
+description: |
+  Pick all required fruits and vegetables in the fresh produce section.
+
+  ## Subtasks
+  - Check for ripeness and quality.
+  - Replace out-of-stock items with alternatives.
+  - Compare prices for best value.
+
+  ## Outcomes
+  - All produce items collected.
+  - All inspected for quality.
+
+---
+# yaml-language-server: $schema=../../schemas/label.schema.yml
+# hash: ffd8f5a770b036a4119b5ee892b9f915
+
+name: priority:high
+color: ff0000
+description: Should be worked on soon; blocks major features.
+
+---
+# yaml-language-server: $schema=../../schemas/milestone.schema.yml
+# hash: 08306bc3d6786f4e4236468a3d36496d
+
+title: 🍎 Fresh Produce Selection
+dueDate: 2024-01-10
+state: open
+description: |
+  Pick all fruits and vegetables from the fresh produce section.
+
+  ### Goal
+  Select the freshest ingredients while staying within budget.
+
+  ### Outcomes
+  - Basket filled with required produce items.
+  - Items inspected for ripeness and quality.
+  - Substitutions made if necessary.

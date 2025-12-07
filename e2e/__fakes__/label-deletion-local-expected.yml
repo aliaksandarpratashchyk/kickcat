@@ -6,7 +6,6 @@ color: 00ff00
 description: Nice-to-have, no urgency.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/label.schema.yml
 # hash: 3e4a90518fffeba597195040621b0e16
 
@@ -15,7 +14,6 @@ color: 00ffff
 description: Normal importance tasks.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/issue.schema.yml
 # hash: b4203b08b3b12aa8b051109dba46ec31
 

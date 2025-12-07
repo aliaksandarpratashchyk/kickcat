@@ -1,11 +1,14 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
 import * as crypto from 'crypto';
 
+/**
+ * Produces a stable MD5 hash for JSON-like values by recursively stringifying fields in order.
+ */
 function hash(value: unknown): string {
 	return crypto.createHash('md5').update(stringify(value), 'utf8').digest('hex');
 }

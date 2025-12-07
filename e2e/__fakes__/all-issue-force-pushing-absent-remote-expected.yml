@@ -17,7 +17,6 @@ description: |
   - No duplicated entries.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/issue.schema.yml
 # hash: 8ce63eb7c24fd9831eaecec1fbd09da5
 

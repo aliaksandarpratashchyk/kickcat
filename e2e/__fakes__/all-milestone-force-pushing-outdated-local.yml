@@ -17,7 +17,6 @@ description: |
   - Special offers noted.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/milestone.schema.yml
 # hash: e9333215e595276920335441b37accb6
 

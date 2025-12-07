@@ -1,5 +1,5 @@
-$schema: "http://json-schema.org/draft-07/schema#"
-title: "GitHub Label Schema"
+$schema: 'http://json-schema.org/draft-07/schema#'
+title: 'GitHub Label Schema'
 type: object
 required:
   - name
@@ -7,11 +7,10 @@ required:
 additionalProperties: false
 
 properties:
-
   name:
     order: 1
     type: string
-    description: "Label name as it appears on GitHub."
+    description: 'Label name as it appears on GitHub.'
     markdownDescription: |
       **Label name** displayed on GitHub.
 
@@ -27,8 +26,8 @@ properties:
   color:
     order: 2
     type: string
-    pattern: "^[0-9a-fA-F]{6}$"
-    description: "Hex color (6 characters, without #)."
+    pattern: '^[0-9a-fA-F]{6}$'
+    description: 'Hex color (6 characters, without #).'
     markdownDescription: |
       **Label color in hex format**.
 
@@ -47,7 +46,7 @@ properties:
     order: 3
     type: string
     format: textarea
-    description: "Full label description."
+    description: 'Full label description.'
     markdownDescription: |
       **Full description of the label.**
 
@@ -61,9 +60,9 @@ properties:
       ```
 
 defaultSnippets:
-  - label: "Label Template"
-    description: "Insert a standard GitHub label structure."
+  - label: 'Label Template'
+    description: 'Insert a standard GitHub label structure.'
     body:
-      name: "$1"
-      color: "$2"
-      description: "$3"
+      name: '$1'
+      color: '$2'
+      description: '$3'

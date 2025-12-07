@@ -1,89 +1,135 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
-import { isNull, isNumber, isString, isUndefined } from "underscore";
-import type { Entity } from "./Entity";
-import type EntitySchemaRegistry from "./EntitySchemaRegistry";
-import type { EntityStorageCookie } from "./EntityStorageCookie";
-import type EntityStorageEntry from "./EntityStorageEntry";
-import type { EntityType } from "./EntityType";
-import unsafe from "./unsafe";
+import { isNull, isNumber, isString, isUndefined } from 'underscore';
 
+import type { Entity } from './Entity';
+import type EntitySchemaRegistry from './EntitySchemaRegistry';
+import type { EntityStorageCookie } from './EntityStorageCookie';
+import type EntityStorageEntry from './EntityStorageEntry';
+import type { EntityType } from './EntityType';
+
+import unsafe from './unsafe';
+
+/**
+ * In-memory index of storage entries for quick lookups by type and key fields.
+ */
 export default class EntityRegistry<
-    TEntityStorageCookie extends EntityStorageCookie = EntityStorageCookie> {
-    readonly schemaRegistry: EntitySchemaRegistry;
-    readonly #all = new Set<EntityStorageEntry<Entity, TEntityStorageCookie>>();
-    readonly #byType =
-        new Map<EntityType, Set<EntityStorageEntry<Entity, TEntityStorageCookie>>>();
-    readonly #index = new Map<EntityType, Map<string, Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>>>();
+	TEntityStorageCookie extends EntityStorageCookie = EntityStorageCookie,
+> {
+	readonly schemaRegistry: EntitySchemaRegistry;
+	readonly #all = new Set<EntityStorageEntry<Entity, TEntityStorageCookie>>();
+	readonly #byType = new Map<EntityType, Set<EntityStorageEntry<Entity, TEntityStorageCookie>>>();
+	readonly #index = new Map<
+		EntityType,
+		Map<string, Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>>
+	>();
 
-    constructor(schemaRegistry: EntitySchemaRegistry) {
-        this.schemaRegistry = schemaRegistry;
-    }
+	constructor(schemaRegistry: EntitySchemaRegistry) {
+		this.schemaRegistry = schemaRegistry;
+	}
 
-    one<TEntity extends Entity>(of: EntityType, where: Partial<TEntity>):
-        EntityStorageEntry<TEntity, TEntityStorageCookie> {
+	all<TEntity extends Entity>(
+		of?: EntityType,
+	): EntityStorageEntry<TEntity, TEntityStorageCookie>[] {
+		if (isUndefined(of)) return unsafe(Array.from(this.#all));
 
-        return unsafe<EntityStorageEntry<TEntity, TEntityStorageCookie>>(Object.entries(where).
-            map(([propertyKey, propertyValue]) =>
-                this.#index.get(of)?.get(propertyKey)?.get(unsafe<string | number>(propertyValue))
-            ).
-            at(0));
-    }
+		return unsafe(Array.from(this.#byType.get(of) ?? []));
+	}
 
-    all<TEntity extends Entity>(of?: EntityType):
-        EntityStorageEntry<TEntity, TEntityStorageCookie>[] {
+	/**
+	 * Returns one entry matching the provided type and partial filter.
+	 */
+	one<TEntity extends Entity>(
+		of: EntityType,
+		where: Partial<TEntity>,
+	): EntityStorageEntry<TEntity, TEntityStorageCookie> | undefined {
+		return unsafe<EntityStorageEntry<TEntity, TEntityStorageCookie>>(
+			Object.entries(where)
+				.map(([propertyKey, propertyValue]) =>
+					this.#index.get(of)?.get(propertyKey)?.get(unsafe<number | string>(propertyValue)),
+				)
+				.at(0),
+		);
+	}
 
-        if (isUndefined(of))
-            return unsafe(Array.from(this.#all));
+	/**
+	 * Adds or updates an entry within the registry and indexes.
+	 */
+	set<TEntity extends Entity>(entry: EntityStorageEntry<TEntity, TEntityStorageCookie>): void {
+		this.#all.add(unsafe(entry));
+		this.#setByType(entry.schema.type, unsafe(entry));
+		this.#setIndex(entry.schema.type, unsafe(entry));
+	}
 
-        return unsafe(Array.from(this.#byType.get(of) ?? []));
-    }
+	// eslint-disable-next-line max-statements
+	delete<TEntity extends Entity>(entry: EntityStorageEntry<TEntity, TEntityStorageCookie>): void {
+		this.#all.delete(unsafe(entry));
+		
+		const byType = this.#byType.get(entry.schema.type);	
+		byType?.delete(unsafe(entry));
 
-    set<TEntity extends Entity>(entry: EntityStorageEntry<TEntity, TEntityStorageCookie>): void {
-        this.#all.add(unsafe(entry));
-        this.#setByType(entry.schema.type, unsafe(entry));
-        this.#setIndex(entry.schema.type, unsafe(entry));
-    }
+		const indexByType = this.#index.get(entry.schema.type);
+		if (typeof indexByType !== 'undefined') {
+			for (const [propertyKey, property] of Object.entries(entry.schema.properties)) {
+				if (
+					property.primaryKey ||
+					property.unique ||
+					(isNull(entry.primaryKey) && property.newUnique)
+				) {
+					const byPropertyKey = indexByType.get(propertyKey);
+					if (typeof byPropertyKey !== 'undefined') {
+						const propertyValue = unsafe<Record<string, unknown>>(entry.entity)[propertyKey];
+						
+						// eslint-disable-next-line max-depth
+						if (isNumber(propertyValue) || isString(propertyValue))
+							byPropertyKey.delete(propertyValue);
+					}
+				}
+			}
+		}
+	}
 
-    #setByType(of: EntityType, entry: EntityStorageEntry<Entity, TEntityStorageCookie>): void {
-        const entries = this.#byType.get(of) ??
-            new Set<EntityStorageEntry<Entity, TEntityStorageCookie>>();
+	#setByType(of: EntityType, entry: EntityStorageEntry<Entity, TEntityStorageCookie>): void {
+		const entries =
+			this.#byType.get(of) ?? new Set<EntityStorageEntry<Entity, TEntityStorageCookie>>();
 
-        this.#byType.set(of, entries);
+		this.#byType.set(of, entries);
 
-        entries.add(entry);
-    }
+		entries.add(entry);
+	}
 
-    // eslint-disable-next-line max-statements
-    #setIndex(of: EntityType, entry: EntityStorageEntry<Entity, TEntityStorageCookie>): void {
-        const byType = this.#index.get(of) ??
-            new Map<string, Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>>();
+	#setIndex(of: EntityType, entry: EntityStorageEntry<Entity, TEntityStorageCookie>): void {
+		const byType =
+			this.#index.get(of) ??
+			new Map<string, Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>>();
 
-        this.#index.set(of, byType);
+		this.#index.set(of, byType);
 
-        const schema = this.schemaRegistry.get(of);
+		const schema = this.schemaRegistry.get(of);
 
-        if (isUndefined(schema))
-            throw new Error(`Can't find "${of}" schema.`);
+		if (isUndefined(schema)) throw new Error(`Can't find "${of}" schema.`);
 
-        for (const [propertyKey, property] of Object.entries(schema.properties)) {
-            if (property.primaryKey ||
-                property.unique || 
-                isNull(entry.primaryKey) && property.newUnique) {
-                const byPropertyKey = byType.get(propertyKey) ??
-                    new Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>();
+		for (const [propertyKey, property] of Object.entries(schema.properties)) {
+			if (
+				property.primaryKey ||
+				property.unique ||
+				(isNull(entry.primaryKey) && property.newUnique)
+			) {
+				const byPropertyKey =
+					byType.get(propertyKey) ??
+					new Map<number | string, EntityStorageEntry<Entity, TEntityStorageCookie>>();
 
-                byType.set(propertyKey, byPropertyKey);
+				byType.set(propertyKey, byPropertyKey);
 
-                const propertyValue = unsafe<Record<string, unknown>>(entry.entity)[propertyKey];
+				const propertyValue = unsafe<Record<string, unknown>>(entry.entity)[propertyKey];
 
-                if (isNumber(propertyValue) || isString(propertyValue))
-                    byPropertyKey.set(propertyValue, entry);
-            }            
-        }
-    }
+				if (isNumber(propertyValue) || isString(propertyValue))
+					byPropertyKey.set(propertyValue, entry);
+			}
+		}
+	}
 }

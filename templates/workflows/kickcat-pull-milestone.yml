@@ -1,0 +1,70 @@
+# Keep KickCat milestones in sync with GitHub milestone events
+name: kickcat-pull-milestone
+
+on:
+  milestone:
+    types: [created, opened, edited, closed, deleted]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync milestone into repository storage
+        env:
+          ACTION: ${{ github.event.action }}
+          MILESTONE_NUMBER: ${{ github.event.milestone.number }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${MILESTONE_NUMBER:-}" ]; then
+            echo "Milestone number is missing; skipping."
+            exit 0
+          fi
+
+          case "${ACTION}" in
+            created|opened|edited|closed)
+              npx @aliaksandarpratashchyk/kickcat entity pull --of=milestone --key=number --value="${MILESTONE_NUMBER}"
+              ;;
+            deleted)
+              npx @aliaksandarpratashchyk/kickcat entity delete --of=milestone --key=number --value="${MILESTONE_NUMBER}"
+              ;;
+            *)
+              echo "Milestone action ${ACTION} not handled; skipping."
+              ;;
+          esac
+
+      - name: Commit changes
+        id: commit
+        env:
+          ACTION: ${{ github.event.action }}
+          MILESTONE_NUMBER: ${{ github.event.milestone.number }}
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- .github; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github
+          git commit -m "chore: sync milestone #${MILESTONE_NUMBER} (${ACTION})"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push changes
+        if: steps.commit.outputs.has_changes == 'true'
+        run: git push

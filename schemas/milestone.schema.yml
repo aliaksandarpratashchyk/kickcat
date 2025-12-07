@@ -1,17 +1,16 @@
-$schema: "http://json-schema.org/draft-07/schema#"
-title: "GitHub Milestone Schema"
+$schema: 'http://json-schema.org/draft-07/schema#'
+title: 'GitHub Milestone Schema'
 type: object
 required:
   - title
 additionalProperties: false
 
 properties:
-
   number:
     doNotSuggest: true
     order: 1
     type: integer
-    description: "GitHub milestone number assigned by GitHub."
+    description: 'GitHub milestone number assigned by GitHub.'
     markdownDescription: |
       **Internal GitHub milestone number.**
 
@@ -24,7 +23,7 @@ properties:
   title:
     order: 2
     type: string
-    description: "Milestone title."
+    description: 'Milestone title.'
     markdownDescription: |
       **Milestone title shown on GitHub.**
 
@@ -39,7 +38,7 @@ properties:
     order: 3
     type: string
     format: date
-    description: "Due date in YYYY-MM-DD."
+    description: 'Due date in YYYY-MM-DD.'
     markdownDescription: |
       **Optional milestone due date.**
 
@@ -56,7 +55,7 @@ properties:
     enum:
       - open
       - closed
-    description: "Milestone state."
+    description: 'Milestone state.'
     markdownDescription: |
       **Milestone state.**
 
@@ -66,8 +65,8 @@ properties:
       Your sync workflow will preserve or update this based on configuration.
 
     enumDescriptions:
-      - "Open milestone"
-      - "Closed milestone"
+      - 'Open milestone'
+      - 'Closed milestone'
 
     markdownEnumDescriptions:
       - |
@@ -81,7 +80,7 @@ properties:
     order: 5
     type: string
     format: textarea
-    description: "Full milestone description."
+    description: 'Full milestone description.'
     markdownDescription: |
       **Full milestone description.**
 
@@ -103,8 +102,8 @@ properties:
       ```
 
 defaultSnippets:
-  - label: "Milestone Template"
-    description: "Insert a standard milestone structure."
+  - label: 'Milestone Template'
+    description: 'Insert a standard milestone structure.'
     body:
-      title: "$1"
-      description: "$2"
+      title: '$1'
+      description: '$2'

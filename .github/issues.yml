@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=../schemas/issue.schema.yml
-title: "🚀 [setup] Project Setup Foundation"
-milestone: "🚀 Project Setup"
+title: '🚀 [setup] Project Setup Foundation'
+milestone: '🚀 Project Setup'
 labels:
-  - "type:feature"
-  - "scope:core"
-  - "scope:workflow"
-  - "priority:high"
-description: |  
+  - 'type:feature'
+  - 'scope:core'
+  - 'scope:workflow'
+  - 'priority:high'
+description: |
   Establish the baseline folder structure, core utilities, shared schemas, and initial workflow templates.
 
   ### Goal
@@ -25,17 +25,16 @@ description: |
   - CI pipeline validates schemas & builds scripts
 
 ---
-
 # yaml-language-server: $schema=../schemas/issue.schema.yml
-title: "🧩 [milestones] Milestones Sync System"
-milestone: "🧩 Milestones Sync"
+title: '🧩 [milestones] Milestones Sync System'
+milestone: '🧩 Milestones Sync'
 labels:
-  - "type:feature"
-  - "scope:milestones"
-  - "priority:high"
+  - 'type:feature'
+  - 'scope:milestones'
+  - 'priority:high'
 dependencies:
-  - "setup"
-description: |  
+  - 'setup'
+description: |
   Implement milestone parsing, hashing, and GitHub synchronization logic.
 
   ## Goal
@@ -56,17 +55,16 @@ description: |
   - Change-safe syncing with conflict protection
 
 ---
-
 # yaml-language-server: $schema=../schemas/issue.schema.yml
-title: "🏷️ [labels] Label Sync System"
-milestone: "🏷️ Labels Sync"
+title: '🏷️ [labels] Label Sync System'
+milestone: '🏷️ Labels Sync'
 labels:
-  - "type:feature"
-  - "scope:labels"
-  - "priority:medium"
+  - 'type:feature'
+  - 'scope:labels'
+  - 'priority:medium'
 dependencies:
-  - "setup"
-description: |  
+  - 'setup'
+description: |
   Implement YAML-driven label definitions and synchronization workflow.
 
   ## Goal
@@ -84,19 +82,18 @@ description: |
   - Clean, predictable taxonomy for CI, epics, milestones
 
 ---
-
 # yaml-language-server: $schema=../schemas/issue.schema.yml
-title: "📦 [issues] Issue & Epic Sync System"
-milestone: "📦 Issues Sync"
+title: '📦 [issues] Issue & Epic Sync System'
+milestone: '📦 Issues Sync'
 labels:
-  - "type:feature"
-  - "scope:issues"
-  - "priority:high"
+  - 'type:feature'
+  - 'scope:issues'
+  - 'priority:high'
 dependencies:
-  - "setup"
-  - "ms-sync"
-  - "label-sync"
-description: |  
+  - 'setup'
+  - 'ms-sync'
+  - 'label-sync'
+description: |
   Build the declarative issue/epic creation and update system, including dependencies and label/milestone synchronization.
 
   ## Goal
@@ -116,17 +113,16 @@ description: |
   - Diff-driven updates with no accidental overrides
 
 ---
-
 # yaml-language-server: $schema=../schemas/issue.schema.yml
-title: "📊 [projects] GitHub Projects Sync System"
-milestone: "📊 Project Sync"
+title: '📊 [projects] GitHub Projects Sync System'
+milestone: '📊 Project Sync'
 labels:
-  - "type:feature"
-  - "scope:projects"
-  - "priority:medium"
+  - 'type:feature'
+  - 'scope:projects'
+  - 'priority:medium'
 dependencies:
-  - "setup"
-description: |  
+  - 'setup'
+description: |
   Implement declarative GitHub Projects (Classic and V2) synchronization.
 
   ## Goal
@@ -145,20 +141,19 @@ description: |
   - Reusable IAC-style project configuration
 
 ---
-
 # yaml-language-server: $schema=../schemas/issue.schema.yml
-title: "🔁 [pipeline] Full Automation Pipeline"
-milestone: "🔁 Full Automation Pipeline"
+title: '🔁 [pipeline] Full Automation Pipeline'
+milestone: '🔁 Full Automation Pipeline'
 labels:
-  - "type:enhancement"
-  - "scope:workflow"
-  - "scope:core"
-  - "priority:medium"
+  - 'type:enhancement'
+  - 'scope:workflow'
+  - 'scope:core'
+  - 'priority:medium'
 dependencies:
-  - "ms-sync"
-  - "label-sync"
-  - "issue-sync"
-  - "project-sync"
+  - 'ms-sync'
+  - 'label-sync'
+  - 'issue-sync'
+  - 'project-sync'
 description: |
   ### Short Description
   Combine all sync systems into one orchestrated workflow with shared utilities.

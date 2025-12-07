@@ -1,7 +1,10 @@
 /**
- * KickCat v0.4.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
+/**
+ * Base shape for all persisted domain entities.
+ */
 export type Entity = Record<string, unknown>;

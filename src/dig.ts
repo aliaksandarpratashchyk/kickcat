@@ -1,7 +1,7 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
 import { readdir, stat } from 'fs/promises';
@@ -9,6 +9,9 @@ import { join } from 'path';
 
 import { exists } from './exists';
 
+/**
+ * Recursively returns all files under a path. If the path is a file, returns it.
+ */
 export default async function dig(path: string): Promise<string[]> {
 	if (!(await exists(path))) return [];
 

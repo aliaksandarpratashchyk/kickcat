@@ -1,3 +1,22 @@
+# yaml-language-server: $schema=../../schemas/issue.schema.yml
+
+title: 📝 Prepare Full Shopping List
+labels:
+  - priority:high
+description: |
+  Create a complete, categorized shopping list before going to the supermarket.
+
+  ## Subtasks
+  - Review pantry and fridge.
+  - Check for missing essentials.
+  - Plan categories: produce, meat, dairy, household goods.
+
+  ## Outcomes
+  - List stored in app.
+  - Categories sorted.
+  - No duplicated entries.
+
+---
 # yaml-language-server: $schema=../../schemas/label.schema.yml
 # hash: 0164dce4fecd422e564bf97bc2bd703f
 
@@ -6,7 +25,6 @@ color: 00ff00
 description: Nice-to-have, no urgency.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/label.schema.yml
 # hash: 3e4a90518fffeba597195040621b0e16
 
@@ -15,7 +33,6 @@ color: 00ffff
 description: Normal importance tasks.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/label.schema.yml
 # hash: ffd8f5a770b036a4119b5ee892b9f915
 

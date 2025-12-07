@@ -1,36 +1,51 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
-import type LoggerFacade from "../logging/LoggerFacade";
-import CommandOptionCollection from "./CommandOptionCollection";
+import type LoggerFacade from '../logging/LoggerFacade';
 import type RequestContext from './RequestContext';
 
-export type BreakingChainActionResult = Promise<boolean> | boolean;
+import CommandOptionCollection from './CommandOptionCollection';
 
-export type NonbreakingChainActionResult = Promise<void> | void;
+/**
+ * Executable body of a command with parsed options.
+ */
+export type Action = (options: Record<string, unknown>) => ActionResult;
 
 export type ActionResult = BreakingChainActionResult | NonbreakingChainActionResult;
 
-export type Action = (options: Record<string, unknown>) => ActionResult;
+/**
+ * Action result that may stop the middleware chain.
+ */
+export type BreakingChainActionResult = boolean | Promise<boolean>;
 
+/**
+ * Action result that always allows the middleware chain to continue.
+ */
+export type NonbreakingChainActionResult = Promise<void> | void;
+
+/**
+ * Represents a runnable CLI command with options and an action.
+ */
 export default class Command {
-    readonly options = new CommandOptionCollection();
-    readonly description: string;
-    readonly action: Action;
+	readonly action: Action;
+	readonly description: string;
+	readonly options = new CommandOptionCollection();
 
-    constructor(action: Action, description?: string) {
-        this.action = action;
-        this.description = description ?? 'The command description is missing.';
-    }
+	constructor(action: Action, description?: string) {
+		this.action = action;
+		this.description = description ?? 'The command description is missing.';
+	}
 
-    async execute(request: RequestContext, logger?: LoggerFacade): Promise<boolean> {
-        for (const option of this.options)
-            option.parse(request, logger);     
-        
-        // eslint-disable-next-line no-unneeded-ternary
-        return (await this.action(request.options) === false) ? false : true;
-    }
+	/**
+	 * Parses incoming options and executes the command action.
+	 */
+	async execute(request: RequestContext, logger?: LoggerFacade): Promise<boolean> {
+		for (const option of this.options) option.parse(request, logger);
+
+		// eslint-disable-next-line no-unneeded-ternary
+		return (await this.action(request.options)) === false ? false : true;
+	}
 }

@@ -17,7 +17,6 @@ description: |
   - Special offers noted.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/milestone.schema.yml
 # hash: e9333215e595276920335441b37accb6
 
@@ -37,7 +36,6 @@ description: |
   - Substitutions made if necessary.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/issue.schema.yml
 # hash: dd98e77b43dc10dee6b3ef31d67798f7
 

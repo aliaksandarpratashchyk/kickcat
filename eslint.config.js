@@ -48,7 +48,7 @@ module.exports = defineConfig(
 					'max-statements': ['error', 10, { ignoreTopLevelFunctions: true }],
 					'one-var': 'off',
 					'no-plusplus': 'off',
-					'no-ternary': 'off',					
+					'no-ternary': 'off',
 					'no-void': ['error', { allowAsStatement: true }],
 					'operator-assignment': 'off', // fix
 					'sort-imports': 'off', // fix
@@ -83,7 +83,7 @@ module.exports = defineConfig(
 			'@typescript-eslint/no-magic-numbers': 'off',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
-			'@typescript-eslint/no-unsafe-type-assertion': 'off'
+			'@typescript-eslint/no-unsafe-type-assertion': 'off',
 		},
 	},
 	{

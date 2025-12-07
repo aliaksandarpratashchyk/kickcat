@@ -11,7 +11,7 @@
 		"noUncheckedIndexedAccess": true,
 		"exactOptionalPropertyTypes": false,
 		"experimentalDecorators": true,
-    	"emitDecoratorMetadata": true,
+		"emitDecoratorMetadata": true,
 		// Style Options
 		"noEmit": true,
 		"noImplicitReturns": true,
@@ -23,7 +23,7 @@
 		"noImplicitAny": true,
 		// Recommended Options
 		"resolvePackageJsonImports": false,
-		"strict": true,		
+		"strict": true,
 		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
 		"noUncheckedSideEffectImports": true,
@@ -36,8 +36,5 @@
 		"resolveJsonModule": true,
 		"lib": ["ESNext"]
 	},
-	"include": [
-		"e2e/**/*.ts",
-		"src/**/*.ts"		
-	]
+	"include": ["e2e/**/*.ts", "src/**/*.ts"]
 }

@@ -1,36 +1,53 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
-import type { Entity } from "./Entity";
-import type EntitySchema from "./EntitySchema";
-import type { EntityType } from "./EntityType";
-import unsafe from "./unsafe";
+import type { Entity } from './Entity';
+import type EntitySchema from './EntitySchema';
+import type { EntityType } from './EntityType';
 
+import unsafe from './unsafe';
+
+/**
+ * Registry holding resolved entity schemas by type.
+ */
 export default class EntitySchemaRegistry {
-    readonly #entitySchemaMap = new Map<EntityType, EntitySchema>();
+	/**
+	 * Returns all registered schemas.
+	 */
+	get all(): EntitySchema[] {
+		return Array.from(this.#entitySchemaMap.values());
+	}
 
-    get all(): EntitySchema[] {
-        return Array.from(this.#entitySchemaMap.values());
-    }
+	readonly #entitySchemaMap = new Map<EntityType, EntitySchema>();
 
-    get(entityType: EntityType): EntitySchema | undefined {
-        return this.#entitySchemaMap.get(entityType);
-    }
+	/**
+	 * Registers an entity schema for a type.
+	 */
+	add<T extends Entity>(entityType: EntityType, entitySchema: EntitySchema<T>): void {
+		this.#entitySchemaMap.set(entityType, unsafe(entitySchema));
+	}
 
-    add<T extends Entity>(entityType: EntityType, entitySchema: EntitySchema<T>): void {
-        this.#entitySchemaMap.set(entityType, unsafe(entitySchema));
-    }
+	/**
+	 * Retrieves a schema by entity type.
+	 */
+	get(entityType: EntityType): EntitySchema | undefined {
+		return this.#entitySchemaMap.get(entityType);
+	}
 
-    resolve(path: string): EntitySchema | undefined {
-        function normalize(value: string): string {
-            return value.replaceAll(/\\/gu, "/").replaceAll(/\.\.\//gu, ""); 
-        }
-        const normalized = normalize(path);
+	/**
+	 * Finds a schema whose file path matches the provided path fragment.
+	 */
+	resolve(path: string): EntitySchema | undefined {
+		function normalize(value: string): string {
+			return value.replaceAll(/\\/gu, '/').replaceAll(/\.\.\//gu, '');
+		}
+		const normalized = normalize(path);
 
-        return Array.from(this.#entitySchemaMap.values()).
-            find(schema => normalize(schema.filePath).includes(normalized));
-    }
+		return Array.from(this.#entitySchemaMap.values()).find((schema) =>
+			normalize(schema.filePath).includes(normalized),
+		);
+	}
 }

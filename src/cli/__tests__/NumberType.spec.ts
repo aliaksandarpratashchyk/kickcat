@@ -1,7 +1,7 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
 import numberType from '../NumberType';
@@ -20,7 +20,7 @@ describe('numberType', () => {
 		});
 
 		it('should return NaN for invalid numeric input.', () => {
-			expect(Number.isNaN(numberType.parse('abc'))).toBe(true);
+			expect(() => numberType.parse('abc')).toThrow();
 		});
 	});
 	describe(numberType.toString.name, () => {

@@ -1,7 +1,7 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
 import type { Type } from './Type';
@@ -12,6 +12,9 @@ type Union<TTypes extends Type[]> = TTypes extends (infer TType)[]
 		: never
 	: never;
 
+/**
+ * CLI type that accepts the first successfully parsed value from a list of types.
+ */
 export default class UnionType<T extends Type[]> implements Type<Union<T>> {
 	public readonly types: T;
 
@@ -19,6 +22,9 @@ export default class UnionType<T extends Type[]> implements Type<Union<T>> {
 		this.types = types;
 	}
 
+	/**
+	 * Tries each nested type until one parses the value.
+	 */
 	parse(value: string): Union<T> {
 		for (const type of this.types) {
 			try {

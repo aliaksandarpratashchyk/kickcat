@@ -1,100 +1,115 @@
 /**
- * KickCat v0.1.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
-import { isUndefined } from "underscore";
-import Route from "./Route";
-import type RequestContext from './RequestContext';
-import type Command from "./Command";
-import type LoggerFacade from "../logging/LoggerFacade";
+import { isUndefined } from 'underscore';
 
+import type LoggerFacade from '../logging/LoggerFacade';
+import type Command from './Command';
+import type RequestContext from './RequestContext';
+
+import Route from './Route';
+
+/**
+ * Route handler grouping a path with its bound commands.
+ */
 export interface Endpoint {
-    route: Route;
-    commands: Command[];
+	commands: Command[];
+	route: Route;
 }
 
+/**
+ * Dispatches CLI routes to registered commands.
+ */
 export default class Router {
-    readonly #endpoints: Endpoint[] = [];
-    readonly #logger: LoggerFacade;
+	get endpoints(): Endpoint[] {
+		return this.#endpoints;
+	}
+	readonly #endpoints: Endpoint[] = [];
 
-    constructor(logger: LoggerFacade) {
-        this.#logger = logger;
-    }
+	readonly #logger: LoggerFacade;
 
-    get endpoints(): Endpoint[] {
-        return this.#endpoints;
-    }
+	constructor(logger: LoggerFacade) {
+		this.#logger = logger;
+	}
 
-    add(route: Route, command: Command): this {
-        let registered = this.#endpoints.find(
-            endpoint =>
-                endpoint.route === route ||
-                (
-                    endpoint.route !== Route.unknown &&
-                    route !== Route.unknown &&
-                    endpoint.route.path === route.path
-                ));
+	/**
+	 * Registers a command for a specific route.
+	 */
+	add(route: Route, command: Command): this {
+		let registered = this.#endpoints.find(
+			(endpoint) =>
+				endpoint.route === route ||
+				(endpoint.route !== Route.unknown &&
+					route !== Route.unknown &&
+					endpoint.route.path === route.path),
+		);
 
-        if (isUndefined(registered)) {
-            registered = { route, commands: [] }
-            this.#endpoints.push(registered);
-        }
-                    
-        if (!registered.commands.includes(command))            
-            registered.commands.push(command);        
+		if (isUndefined(registered)) {
+			registered = { commands: [], route };
+			this.#endpoints.push(registered);
+		}
 
-        return this;
-    }
+		if (!registered.commands.includes(command)) registered.commands.push(command);
 
-    // eslint-disable-next-line max-statements
-    resolve(path: string): Endpoint {
-        let route = Route.unknown;
-        let commands: Command[] = [];        
-        const unknownEndpoint = this.#endpoints.find($endpoint => $endpoint.route === Route.unknown);
+		return this;
+	}
 
-        for (const endpoint of this.#endpoints.filter($endpoint => $endpoint.route !== Route.unknown)) {
-            if (endpoint.route.match(path)) {
-                if (endpoint.route === Route.any) {
-                    commands = [ ...commands, ...endpoint.commands ];
-                    // eslint-disable-next-line no-continue
-                    continue;
-                }
+	/**
+	 * Processes a request by matching its path and executing commands in order.
+	 */
+	async dispatch(request: RequestContext): Promise<void> {
+		const path: string[] = [];
+		let endpoint = this.resolve('');
 
-                route = endpoint.route;
-                commands = [ ...commands, ...endpoint.commands ];
-            }
-        }
+		for (const rawPart of request.raw) {
+			path.push(rawPart);
+			endpoint = this.resolve(path.join(' '));
 
-        if (route === Route.unknown && !isUndefined(unknownEndpoint)) {
-            return {
-                route: Route.unknown,
-                commands: [ ...commands, ...unknownEndpoint.commands ],
-            };
-        }
+			if (!endpoint.route.hasWildcard) break;
+		}
 
-        return { route, commands };
-    }
-    
-    async dispatch(request: RequestContext): Promise<void> {        
-        const path: string[] = [];        
-        let endpoint = this.resolve('');
+		request.route = endpoint.route;
 
-        for (const rawPart of request.raw) {
-            path.push(rawPart);
-            endpoint = this.resolve(path.join(' '));
+		for (const command of endpoint.commands) {
+			// eslint-disable-next-line no-await-in-loop
+			if (!(await command.execute(request, this.#logger))) break;
+		}
+	}
 
-            if (!endpoint.route.hasWildcard)
-                break;             
-        }        
+	/**
+	 * Resolves a path to the matching endpoint and aggregated commands.
+	 */
+	// eslint-disable-next-line max-statements
+	resolve(path: string): Endpoint {
+		let route = Route.unknown;
+		let commands: Command[] = [];
+		const unknownEndpoint = this.#endpoints.find(($endpoint) => $endpoint.route === Route.unknown);
 
-        request.route = endpoint.route;
+		for (const endpoint of this.#endpoints.filter(
+			($endpoint) => $endpoint.route !== Route.unknown,
+		)) {
+			if (endpoint.route.match(path)) {
+				if (endpoint.route === Route.any) {
+					commands = [...commands, ...endpoint.commands];
+					// eslint-disable-next-line no-continue
+					continue;
+				}
 
-        for (const command of endpoint.commands) {            
-            // eslint-disable-next-line no-await-in-loop
-            if (!(await (command.execute(request, this.#logger))))
-                break;
-        }				            
-    }           
+				route = endpoint.route;
+				commands = [...commands, ...endpoint.commands];
+			}
+		}
+
+		if (route === Route.unknown && !isUndefined(unknownEndpoint)) {
+			return {
+				commands: [...commands, ...unknownEndpoint.commands],
+				route: Route.unknown,
+			};
+		}
+
+		return { commands, route };
+	}
 }

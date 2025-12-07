@@ -1,25 +1,36 @@
 /**
- * KickCat v0.4.0
+ * KickCat v0.5.0
  * Copyright (c) 2025 Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>
- * Licensed under GNU GPL v3 + No AI Use Clause (see LICENSE)
+ * Licensed under MIT (see LICENSE)
  */
 
-import type { Entity } from "../Entity";
-import type EntityStorageEntryBinding from "./EntityStorageEntryBinding";
+import type { Entity } from '../Entity';
+import type EntityStorageEntryBinding from './EntityStorageEntryBinding';
 
+/**
+ * Helper collection for applying multiple entry bindings.
+ */
 export default class EntityStorageEntryBindingBag<TEntity extends Entity = Entity> {
-    readonly #bindings: EntityStorageEntryBinding<TEntity>[] = [];
-    
-    get bindings(): readonly EntityStorageEntryBinding<TEntity>[] {
-        return this.#bindings;
-    }
+	/**
+	 * Returns the queued bindings.
+	 */
+	get bindings(): readonly EntityStorageEntryBinding<TEntity>[] {
+		return this.#bindings;
+	}
 
-    add(binding: EntityStorageEntryBinding<TEntity>): void {
-        this.#bindings.push(binding);
-    }
+	readonly #bindings: EntityStorageEntryBinding<TEntity>[] = [];
 
-    pullAll(): void {
-        for (const binding of this.#bindings)
-            binding.pull();
-    }
+	/**
+	 * Adds a binding to the bag.
+	 */
+	add(binding: EntityStorageEntryBinding<TEntity>): void {
+		this.#bindings.push(binding);
+	}
+
+	/**
+	 * Applies all bindings in order.
+	 */
+	pullAll(): void {
+		for (const binding of this.#bindings) binding.pull();
+	}
 }

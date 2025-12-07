@@ -1,20 +1,20 @@
-<svg width="116.3" height="20" viewBox="0 0 1163 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Coverage: 87.87%">
-  <title>Coverage: 87.87%</title>
-  <linearGradient id="bSsQs" x2="0" y2="100%">
+<svg width="116.3" height="20" viewBox="0 0 1163 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Coverage: 72.26%">
+  <title>Coverage: 72.26%</title>
+  <linearGradient id="aDekd" x2="0" y2="100%">
     <stop offset="0" stop-opacity=".1" stop-color="#EEE"/>
     <stop offset="1" stop-opacity=".1"/>
   </linearGradient>
-  <mask id="EDCtm"><rect width="1163" height="200" rx="30" fill="#FFF"/></mask>
-  <g mask="url(#EDCtm)">
+  <mask id="bXduX"><rect width="1163" height="200" rx="30" fill="#FFF"/></mask>
+  <g mask="url(#bXduX)">
     <rect width="623" height="200" fill="#555"/>
-    <rect width="540" height="200" fill="#a0a127" x="623"/>
-    <rect width="1163" height="200" fill="url(#bSsQs)"/>
+    <rect width="540" height="200" fill="#cba317" x="623"/>
+    <rect width="1163" height="200" fill="url(#aDekd)"/>
   </g>
   <g aria-hidden="true" fill="#fff" text-anchor="start" font-family="Verdana,DejaVu Sans,sans-serif" font-size="110">
     <text x="60" y="148" textLength="523" fill="#000" opacity="0.25">Coverage</text>
     <text x="50" y="138" textLength="523">Coverage</text>
-    <text x="678" y="148" textLength="440" fill="#000" opacity="0.25">87.87%</text>
-    <text x="668" y="138" textLength="440">87.87%</text>
+    <text x="678" y="148" textLength="440" fill="#000" opacity="0.25">72.26%</text>
+    <text x="668" y="138" textLength="440">72.26%</text>
   </g>
   
 </svg>

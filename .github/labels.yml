@@ -1,130 +1,112 @@
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "priority:critical"
-color: "d73a4a"
-description: "Must be fixed immediately. Blocks releases."
+name: 'priority:critical'
+color: 'd73a4a'
+description: 'Must be fixed immediately. Blocks releases.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "priority:high"
-color: "ff6f59"
-description: "Should be worked on soon; blocks major features."
+name: 'priority:high'
+color: 'ff6f59'
+description: 'Should be worked on soon; blocks major features.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "priority:medium"
-color: "fbca04"
-description: "Normal importance tasks."
+name: 'priority:medium'
+color: 'fbca04'
+description: 'Normal importance tasks.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "priority:low"
-color: "c2e0c6"
-description: "Nice-to-have, no urgency."
+name: 'priority:low'
+color: 'c2e0c6'
+description: 'Nice-to-have, no urgency.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "type:feature"
-color: "0e8a16"
-description: "New functionality for automation tools."
+name: 'type:feature'
+color: '0e8a16'
+description: 'New functionality for automation tools.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "type:enhancement"
-color: "84b6eb"
-description: "Improvements to existing workflows."
+name: 'type:enhancement'
+color: '84b6eb'
+description: 'Improvements to existing workflows.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "type:bug"
-color: "d73a4a"
-description: "Incorrect or failing behavior."
+name: 'type:bug'
+color: 'd73a4a'
+description: 'Incorrect or failing behavior.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "type:refactor"
-color: "c5def5"
-description: "Internal code-level improvement."
+name: 'type:refactor'
+color: 'c5def5'
+description: 'Internal code-level improvement.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "type:docs"
-color: "006b75"
-description: "Documentation or README updates."
+name: 'type:docs'
+color: '006b75'
+description: 'Documentation or README updates.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "type:chore"
-color: "ededed"
-description: "Maintenance, CI updates, or dependency updates."
+name: 'type:chore'
+color: 'ededed'
+description: 'Maintenance, CI updates, or dependency updates.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "type:breaking"
-color: "5319e7"
-description: "Changes requiring workflow migration."
+name: 'type:breaking'
+color: '5319e7'
+description: 'Changes requiring workflow migration.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:milestones"
-color: "5319e7"
-description: "Milestone sync scripts & workflow."
+name: 'scope:milestones'
+color: '5319e7'
+description: 'Milestone sync scripts & workflow.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:labels"
-color: "1d76db"
-description: "Label sync system."
+name: 'scope:labels'
+color: '1d76db'
+description: 'Label sync system.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:issues"
-color: "006b75"
-description: "Issue sync scripts."
+name: 'scope:issues'
+color: '006b75'
+description: 'Issue sync scripts.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:projects"
-color: "0e8a16"
-description: "GitHub Projects sync automation."
+name: 'scope:projects'
+color: '0e8a16'
+description: 'GitHub Projects sync automation.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:schemas"
-color: "fbca04"
-description: "Zod/JSON/YAML schema definitions."
+name: 'scope:schemas'
+color: 'fbca04'
+description: 'Zod/JSON/YAML schema definitions.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:workflow"
-color: "b60205"
-description: "GitHub workflow logic & reusable templates."
+name: 'scope:workflow'
+color: 'b60205'
+description: 'GitHub workflow logic & reusable templates.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:cli"
-color: "fde3e3"
-description: "CLI tool and npx interface."
+name: 'scope:cli'
+color: 'fde3e3'
+description: 'CLI tool and npx interface.'
 
 ---
-
 # yaml-language-server: $schema=../schemas/label.schema.yml
-name: "scope:core"
-color: "c2e0c6"
-description: "Shared utilities, GitHub API, loaders, hashing."
+name: 'scope:core'
+color: 'c2e0c6'
+description: 'Shared utilities, GitHub API, loaders, hashing.'

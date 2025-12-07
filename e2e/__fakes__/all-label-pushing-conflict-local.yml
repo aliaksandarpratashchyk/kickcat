@@ -6,7 +6,6 @@ color: 00ff00
 description: Nice-to-have, no urgency.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/label.schema.yml
 # hash: 3e4a90518fffeba597195040621b0e16
 
@@ -15,10 +14,9 @@ color: 00ffff
 description: Normal importance tasks.
 
 ---
-
 # yaml-language-server: $schema=../../schemas/label.schema.yml
 # hash: ffd8f5a770b036a4119b5ee892b9f915
 
 name: priority:high
-color: "000000" # Changed here, conflicts with remote
+color: '000000' # Changed here, conflicts with remote
 description: Should be worked on soon; blocks major features.
