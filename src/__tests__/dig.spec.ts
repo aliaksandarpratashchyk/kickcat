@@ -5,6 +5,7 @@
  */
 
 import { fs, vol } from 'memfs';
+import { join } from 'path';
 
 import dig from '../dig';
 
@@ -18,7 +19,7 @@ vol.fromJSON({
 describe(dig.name, () => {
 	describe.each`
 		path      | expected
-		${'/foo'} | ${['\\foo\\bar', '\\foo\\baz\\bar']}
+		${'/foo'} | ${[ join('/foo', 'bar'), join('/foo', 'baz', 'bar') ]}
 		${'/bar'} | ${[]}
 	`('when the path is $path', ({ expected, path }) => {
 		it(`should return ${expected}.`, async () => {

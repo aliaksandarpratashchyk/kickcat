@@ -3,8 +3,7 @@
 	"version": "0.5.0",
 	"description": "Infrastructure-as-code toolkit for GitHub repository automation. Includes reusable workflows, utilities, and a CLI to install workflow templates.",
 	"bin": {
-		"kickcat": "./dist/bundle.js",
-		"@aliaksandarpratashchyk/kickcat": "./dist/bundle.js"
+		"kickcat": "./dist/bundle.js"
 	},
 	"author": "Aliaksandar Pratashchyk <aliaksandarpratashchyk@gmail.com>",
 	"license": "MIT",
@@ -29,7 +28,7 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/aliaksandarpratashchyk/kickcat.git"
+		"url": "git+https://github.com/aliaksandarpratashchyk/kickcat.git"
 	},
 	"bugs": {
 		"url": "https://github.com/aliaksandarpratashchyk/kickcat/issues"
@@ -37,7 +36,7 @@
 	"homepage": "https://github.com/aliaksandarpratashchyk/kickcat#readme",
 	"scripts": {
 		"build": "webpack",
-		"e2e": "jest --testPathIgnorePatterns src",
+		"e2e": "npm run build && jest --testPathIgnorePatterns src",
 		"test": "jest --testPathIgnorePatterns e2e > COVERAGE.md && coverage-badges-cli -s ./coverage/coverage-summary.json -o ./coverage.svg --label Coverage",
 		"format": "npx prettier . --write",
 		"lint": "cross-env ESLINT_ENV=cli npx eslint . --fix"

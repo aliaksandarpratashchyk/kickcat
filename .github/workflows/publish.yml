@@ -1,59 +1,64 @@
-name: Publish to GitHub Packages
+name: Publish
 
 on:
   push:
     branches: [main]
+    paths:
+      - package.json      
+  workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Detect version change
-        id: version
-        run: |
-          CURRENT=$(node -p "require('./package.json').version")
-          PREV=$(git show HEAD^:package.json 2>/dev/null | jq -r '.version' || true)
-          echo "previous=${PREV}" >> "$GITHUB_OUTPUT"
-          echo "current=${CURRENT}" >> "$GITHUB_OUTPUT"
-          if [ "${PREV}" != "${CURRENT}" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Set up Node.js
-        if: steps.version.outputs.changed == 'true'
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: https://npm.pkg.github.com
-          cache: 'npm'
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: npm
 
       - name: Install dependencies
-        if: steps.version.outputs.changed == 'true'
         run: npm ci
 
       - name: Build package
-        if: steps.version.outputs.changed == 'true'
         run: npm run build
 
-      - name: Publish to GitHub Packages
-        if: steps.version.outputs.changed == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Detect version change
+        id: version_check
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
-          echo "@aliaksandarpratashchyk:registry=https://npm.pkg.github.com" >> ~/.npmrc
-          npm publish
+          package_name="$(node -p "require('./package.json').name")"
+          current_version="$(node -p "require('./package.json').version")"
+          published_version="$(npm view "$package_name" version 2>/dev/null || true)"
+
+          echo "current_version=${current_version}" >> "$GITHUB_OUTPUT"
+          echo "published_version=${published_version:-<none>}" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$published_version" ]; then
+            echo "No version published yet; will publish ${current_version}."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif [ "$current_version" != "$published_version" ]; then
+            echo "Version differs (npm: ${published_version}, repo: ${current_version}); will publish."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version ${current_version} already published; skipping."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.version_check.outputs.changed == 'true'
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Skip publish (version unchanged)
-        if: steps.version.outputs.changed != 'true'
-        run: echo "Package version unchanged; skipping publish."
+        if: steps.version_check.outputs.changed != 'true'
+        run: echo "Version unchanged; skipping npm publish."

@@ -5,8 +5,8 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { copyFile, readFile, unlink } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { copyFile, mkdir, readFile, unlink } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 
 import type Fake from './Fake';
 
@@ -34,6 +34,7 @@ export default class Sandbox {
 	async copy(): Promise<void> {
 		if (this.#ready) return;
 
+		await mkdir(dirname(this.path), { recursive: true });
 		await copyFile(this.fake.path, this.path);
 
 		this.#ready = true;

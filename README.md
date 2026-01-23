@@ -2,7 +2,7 @@
 
 ![Tests](https://github.com/aliaksandarpratashchyk/kickcat/actions/workflows/unit-tests.yml/badge.svg)
 [![Coverage](./coverage.svg)](./COVERAGE.md)
-![E2E](https://github.com/aliaksandarpratashchyk/nesteria/actions/workflows/e2e-tests.yml/badge.svg)
+![E2E](https://github.com/aliaksandarpratashchyk/kickcat/actions/workflows/e2e-tests.yml/badge.svg)
 
 KickCat keeps GitHub metadata (milestones, labels, issues) as YAML and syncs it with a GitHub repository or a file-based store. It preserves schema-driven ordering and hash comments so you can review changes as code.
 
