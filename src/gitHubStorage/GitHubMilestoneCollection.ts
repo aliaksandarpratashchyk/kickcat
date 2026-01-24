@@ -79,7 +79,7 @@ export default class GitHubMilestoneCollection extends GitHubEntityCollection<Mi
 					await this.octokit.rest.issues.createMilestone({
 						description: milestone.description,
 						// eslint-disable-next-line camelcase
-						due_on: milestone.dueDate ?? '',
+						due_on: milestone.dueDate,
 						owner: this.owner,
 						repo: this.repo,
 						state: milestone.state,

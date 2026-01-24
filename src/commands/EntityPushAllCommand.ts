@@ -239,9 +239,9 @@ export default class EntityPushAllCommand
 	 * Removes references to other entity types from the entry before pushing to remote.
 	 */
 	async #entityWithSameTypeReferences(entry: EntityStorageEntry): Promise<Entity> {
-		if (!this.#stripCrossTypeReferences) return { ...entry.entity };
-
 		const entity = await entry.getFreeOfNonPrimaryKeyDependeciesEntity();
+
+		if (!this.#stripCrossTypeReferences) return { ...entity };
 
 		return Object.fromEntries(
 			Object.entries(entity).filter(([propertyName]) => {

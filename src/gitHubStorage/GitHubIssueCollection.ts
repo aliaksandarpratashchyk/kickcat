@@ -75,9 +75,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 			returned = toIssue(
 				(
 					await this.octokit.rest.issues.create({
-						description: issue.description,
+						body: issue.description,
 						labels: issue.labels,
-						milestone: issue.milestone,
+						milestone: isNumber(issue.milestone) ? issue.milestone : undefined,
 						owner: this.owner,
 						repo: this.repo,
 						title: nonNullable(issue.title),
@@ -95,7 +95,7 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 						// eslint-disable-next-line camelcase
 						issue_number: issue.number,
 						labels: issue.labels,
-						milestone: issue.milestone,
+						milestone: isNumber(issue.milestone) ? issue.milestone : undefined,
 						owner: this.owner,
 						repo: this.repo,
 						title: nonNullable(issue.title),
