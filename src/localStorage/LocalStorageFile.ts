@@ -157,7 +157,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 		return this.#entityRegistry.one<TEntity>(of, where);
 	}
 
-	// eslint-disable-next-line max-statements, max-lines-per-function
+	// eslint-disable-next-line max-statements, max-lines-per-function, complexity
 	async #reindex(): Promise<void> {
 		if (this.#eof) return;
 
@@ -177,23 +177,42 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 				comment = document.contents.commentBefore;
 
 			if (comment !== null) {
+				this.#logger.debug(`Parsing comment before document #${index}:\n${comment}`);
+
 				const parsedCommentBefore = parseAllCommentBefore(comment);
-				if ('hash' in parsedCommentBefore) savedHash = parsedCommentBefore['hash'];
+				if ('hash' in parsedCommentBefore) {					
+					savedHash = parsedCommentBefore['hash'];
+					this.#logger.debug(`Found saved hash: ${savedHash}`);
+				}
 				if ('yaml-language-server' in parsedCommentBefore) {
+					this.#logger.debug(`Found yaml-language-server schema info: ${parsedCommentBefore['yaml-language-server']}`);
 					const match = /\$schema=(?<schema>.+)/u.exec(parsedCommentBefore['yaml-language-server']);
 
-					if (match !== null) schemaPath = match[1] ?? null;
+					if (match !== null) {
+						schemaPath = match[1] ?? null;
+						this.#logger.debug(`Resolved schema path: ${schemaPath}`);
+					}
 				}
 				if ('type' in parsedCommentBefore) {
+					this.#logger.debug(`Found saved type: ${parsedCommentBefore['type']}`);
 					const savedTypeAsString = parsedCommentBefore['type'];
-					if (isEntityType(savedTypeAsString)) savedType = savedTypeAsString;
+					if (isEntityType(savedTypeAsString)) {
+						savedType = savedTypeAsString;
+						this.#logger.debug(`Resolved saved type: ${savedType}`);
+					}
 				}
 			}
 
 			let entitySchema: EntitySchema | null | undefined = null;
 
-			if (savedType !== null) entitySchema = this.entitySchemaRegistry.get(savedType);
-			else if (schemaPath !== null) entitySchema = this.entitySchemaRegistry.resolve(schemaPath);
+			if (savedType !== null) {				
+				entitySchema = this.entitySchemaRegistry.get(savedType);
+				this.#logger.debug(`Resolved entity schema by saved type: ${entitySchema?.type}`);
+			}
+			else if (schemaPath !== null) {
+				entitySchema = this.entitySchemaRegistry.resolve(schemaPath, this.#logger);
+				this.#logger.debug(`Resolved entity schema by schema path: ${entitySchema?.type}`);
+			}
 
 			if (isUndefined(entitySchema))
 				entitySchema = this.entitySchemaRegistry.all.find((schema) => schema.validate(entity));

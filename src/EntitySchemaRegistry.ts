@@ -7,6 +7,7 @@
 import type { Entity } from './Entity';
 import type EntitySchema from './EntitySchema';
 import type { EntityType } from './EntityType';
+import type LoggerFacade from './logging/LoggerFacade';
 
 import unsafe from './unsafe';
 
@@ -40,14 +41,20 @@ export default class EntitySchemaRegistry {
 	/**
 	 * Finds a schema whose file path matches the provided path fragment.
 	 */
-	resolve(path: string): EntitySchema | undefined {
+	resolve(path: string, logger?: LoggerFacade): EntitySchema | undefined {
+		logger?.debug(`Resolving entity schema for path: ${path}`);
+
 		function normalize(value: string): string {
 			return value.replaceAll(/\\/gu, '/').replaceAll(/\.\.\//gu, '');
 		}
 		const normalized = normalize(path);
+		logger?.debug(`Normalized path for resolution: ${normalized}`);
 
 		return Array.from(this.#entitySchemaMap.values()).find((schema) =>
-			normalize(schema.filePath).includes(normalized),
+			{	const normalizedSchemaFilePath = normalize(schema.filePath);
+				logger?.debug(`Comparing with schema file path: ${normalizedSchemaFilePath}`);
+				return normalizedSchemaFilePath.includes(normalized);
+			}			
 		);
 	}
 }
