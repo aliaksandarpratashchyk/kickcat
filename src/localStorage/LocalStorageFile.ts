@@ -171,6 +171,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 			let schemaPath: null | string = null;
 			let savedType: EntityType | null = null;
 			let comment: null | string = null;
+			let hasKickcatHints = false;
 
 			if (isString(document.commentBefore)) comment = document.commentBefore;
 			else if (isString(document.contents?.commentBefore))
@@ -180,17 +181,27 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 				this.#logger.debug(`Parsing comment before document #${index}:\n${comment}`);
 
 				const parsedCommentBefore = parseAllCommentBefore(comment);
-				if ('hash' in parsedCommentBefore) {					
+				if ('hash' in parsedCommentBefore) {
 					savedHash = parsedCommentBefore['hash'];
 					this.#logger.debug(`Found saved hash: ${savedHash}`);
 				}
 				if ('yaml-language-server' in parsedCommentBefore) {
-					this.#logger.debug(`Found yaml-language-server schema info: ${parsedCommentBefore['yaml-language-server']}`);
+					this.#logger.debug(
+						`Found yaml-language-server schema info: ${parsedCommentBefore['yaml-language-server']}`,
+					);
 					const match = /\$schema=(?<schema>.+)/u.exec(parsedCommentBefore['yaml-language-server']);
 
 					if (match !== null) {
-						schemaPath = match[1] ?? null;
-						this.#logger.debug(`Resolved schema path: ${schemaPath}`);
+						const candidate = match[1]?.trim() ?? null;
+						const looksLikeKickcatSchema =
+							candidate !== null &&
+							/(?:^|[\\/])(?:issue|label|milestone)\.schema\.yml$/u.exec(candidate) !== null;
+
+						if (looksLikeKickcatSchema) {
+							schemaPath = candidate;
+							hasKickcatHints = true;
+							this.#logger.debug(`Resolved schema path: ${schemaPath}`);
+						}
 					}
 				}
 				if ('type' in parsedCommentBefore) {
@@ -198,27 +209,36 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 					const savedTypeAsString = parsedCommentBefore['type'];
 					if (isEntityType(savedTypeAsString)) {
 						savedType = savedTypeAsString;
+						hasKickcatHints = true;
 						this.#logger.debug(`Resolved saved type: ${savedType}`);
 					}
 				}
 			}
 
-			let entitySchema: EntitySchema | null | undefined = null;
+			// eslint-disable-next-line @typescript-eslint/init-declarations
+			let entitySchema: EntitySchema | undefined;
 
-			if (savedType !== null) {				
+			if (savedType !== null) {
 				entitySchema = this.entitySchemaRegistry.get(savedType);
 				this.#logger.debug(`Resolved entity schema by saved type: ${entitySchema?.type}`);
-			}
-			else if (schemaPath !== null) {
+			} else if (schemaPath !== null) {
 				entitySchema = this.entitySchemaRegistry.resolve(schemaPath, this.#logger);
 				this.#logger.debug(`Resolved entity schema by schema path: ${entitySchema?.type}`);
 			}
 
-			if (isUndefined(entitySchema))
+			if (isUndefined(entitySchema)) {
 				entitySchema = this.entitySchemaRegistry.all.find((schema) => schema.validate(entity));
+				if (!isUndefined(entitySchema)) hasKickcatHints = true;
+			}
 
-			if (isUndefined(entitySchema) || entitySchema === null)
-				throw new Error(`Can't resolve schema for entity.`);
+			if (isUndefined(entitySchema)) {
+				if (hasKickcatHints) throw new Error(`Can't resolve schema for entity.`);
+				this.#logger.debug(
+					`Skipping YAML document #${index} in "${this.filePath}" (not a KickCat entity).`,
+				);
+				// eslint-disable-next-line no-continue
+				continue;
+			}
 
 			if (entitySchema.validate(entity)) {
 				if (savedHash.trim() === '')
@@ -267,7 +287,7 @@ export default class LocalStorageFile implements EntityStorage<LocalStorageCooki
 
 		document.commentBefore = [
 			` yaml-language-server: $schema=${schemaPath}`,
-			...(isUndefined(hashToWrite) ? [] : [ ` hash: ${hashToWrite}` ]),
+			...(isUndefined(hashToWrite) ? [] : [` hash: ${hashToWrite}`]),
 		].join('\n');
 		document.contents = this.#toOrderedYamlMap(entry.entity, schema);
 

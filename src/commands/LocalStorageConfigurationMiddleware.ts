@@ -72,7 +72,7 @@ export default class LocalStorageConfigurationMiddleware
 			(typeof storagePath === 'string' && storagePath.trim() === '')
 		) {
 			this.#logger.info(
-				`Environment variable KICKCAT_LOCAL_STORAGE is not found, backfall to the current working directory.`,
+				`Environment variable KICKCAT_LOCAL_STORAGE is not found, falling back to ".github" in the current working directory.`,
 			);
 			storagePath = resolve(process.cwd(), '.github');
 		}

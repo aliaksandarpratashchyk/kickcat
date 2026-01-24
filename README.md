@@ -24,7 +24,7 @@ KickCat keeps GitHub metadata (milestones, labels, issues) as YAML and syncs it 
 ## Configuration
 
 - **Logging:** `--log-level [debug|info|warn|error|off]` (default: `off`)
-- **Local storage:** `--local-storage` or `KICKCAT_LOCAL_STORAGE` (YAML file/folder, defaults to the current working directory).
+- **Local storage:** `--local-storage` or `KICKCAT_LOCAL_STORAGE` (YAML file/folder, defaults to `./.github`).
 - **Remote storage:**
   - GitHub (default): set `GITHUB_TOKEN` (or pass `--git-hub-token`) and repo/owner derived from the current git remote or `GITHUB_REPOSITORY`.
   - File-based: `--remote-storage` or `KICKCAT_REMOTE_STORAGE` to point at another YAML file/folder.
