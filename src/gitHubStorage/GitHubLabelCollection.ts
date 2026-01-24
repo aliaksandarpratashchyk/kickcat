@@ -4,7 +4,6 @@
  * Licensed under MIT (see LICENSE)
  */
 
-import { RequestError } from 'octokit';
 import { isNull, isUndefined } from 'underscore';
 
 import type { Label } from '../Label';
@@ -27,6 +26,9 @@ export interface GitHubLabel {
  */
 export default class GitHubLabelCollection extends GitHubEntityCollection<Label> {
 	async delete(where: Partial<Label>): Promise<void> {
+		this.logger.debug(
+			`GitHub labels.deleteLabel: ${this.owner}/${this.repo} name="${nonNullable(where.name)}"`,
+		);
 		await this.octokit.rest.issues.deleteLabel({
 			name: nonNullable(where.name),
 			owner: this.owner,
@@ -35,6 +37,9 @@ export default class GitHubLabelCollection extends GitHubEntityCollection<Label>
 	}
 
 	async get(where: Partial<Label>): Promise<Label | undefined> {
+		this.logger.debug(
+			`GitHub labels.getLabel: ${this.owner}/${this.repo} name="${nonNullable(where.name)}"`,
+		);
 		try {
 			return toLabel(
 				(
@@ -46,9 +51,14 @@ export default class GitHubLabelCollection extends GitHubEntityCollection<Label>
 				).data,
 			);
 		} catch (error) {
-			if (error instanceof RequestError && error.status === 404)
+			const status = getRequestStatus(error);
+			if (status === 404) {
+				this.logger.debug(
+					`GitHub labels.getLabel returned 404: ${this.owner}/${this.repo} name="${nonNullable(where.name)}"`,
+				);
 				// eslint-disable-next-line no-undefined
 				return undefined;
+			}
 
 			throw error;
 		}
@@ -58,6 +68,9 @@ export default class GitHubLabelCollection extends GitHubEntityCollection<Label>
 		const existing = await this.get(label);
 
 		if (isUndefined(existing)) {
+			this.logger.debug(
+				`GitHub labels.createLabel: ${this.owner}/${this.repo} name="${nonNullable(label.name)}"`,
+			);
 			return toLabel(
 				(
 					await this.octokit.rest.issues.createLabel({
@@ -71,6 +84,9 @@ export default class GitHubLabelCollection extends GitHubEntityCollection<Label>
 			);
 		}
 
+		this.logger.debug(
+			`GitHub labels.updateLabel: ${this.owner}/${this.repo} name="${nonNullable(label.name)}"`,
+		);
 		return toLabel(
 			(
 				await this.octokit.rest.issues.updateLabel({
@@ -83,6 +99,13 @@ export default class GitHubLabelCollection extends GitHubEntityCollection<Label>
 			).data,
 		);
 	}
+}
+
+function getRequestStatus(error: unknown): number | undefined {
+	if (typeof error !== 'object' || error === null) return undefined;
+	if (!('status' in error)) return undefined;
+	const { status } = error as { status?: unknown };
+	return typeof status === 'number' ? status : undefined;
 }
 
 function toLabel(gitHubLabel: GitHubLabel): Label {

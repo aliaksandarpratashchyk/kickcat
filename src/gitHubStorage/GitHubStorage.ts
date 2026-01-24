@@ -43,9 +43,9 @@ export default class GitHubStorage implements EntityStorage {
 		logger: LoggerFacade,
 	) {
 		this.colletions = {
-			[ISSUE]: new GitHubIssueCollection(token),
-			[LABEL]: new GitHubLabelCollection(token),
-			[MILESTONE]: new GitHubMilestoneCollection(token),
+			[ISSUE]: new GitHubIssueCollection(token, logger),
+			[LABEL]: new GitHubLabelCollection(token, logger),
+			[MILESTONE]: new GitHubMilestoneCollection(token, logger),
 		};
 		this.entitySchemaRegistry = entitySchemaRegistry;
 		this.#entityRegistry = new EntityRegistry(entitySchemaRegistry);

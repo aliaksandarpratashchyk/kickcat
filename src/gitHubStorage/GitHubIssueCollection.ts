@@ -4,7 +4,6 @@
  * Licensed under MIT (see LICENSE)
  */
 
-import { RequestError } from 'octokit';
 import { difference, isNumber, isString, isUndefined } from 'underscore';
 
 import type { Issue } from '../Issue';
@@ -34,6 +33,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 	}
 
 	async get(where: Partial<Issue>): Promise<Issue | undefined> {
+		this.logger.debug(
+			`GitHub issues.get: ${this.owner}/${this.repo} issue_number=${nonNullable(where.number)}`,
+		);
 		try {
 			const issue = toIssue(
 				(
@@ -48,20 +50,28 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 
 			return issue;
 		} catch (error) {
-			if (error instanceof RequestError && [301, 404, 410].includes(error.status))
+			const status = getRequestStatus(error);
+			if (!isUndefined(status) && [301, 404, 410].includes(status)) {
+				this.logger.debug(
+					`GitHub issues.get returned ${status}: ${this.owner}/${this.repo} issue_number=${nonNullable(where.number)}`,
+				);
 				// eslint-disable-next-line no-undefined
 				return undefined;
+			}
 
 			throw error;
 		}
 	}
 
-	// eslint-disable-next-line max-statements
+	// eslint-disable-next-line max-statements, max-lines-per-function
 	async set(issue: Partial<Issue>): Promise<Issue> {
 		// eslint-disable-next-line no-useless-assignment
 		let returned: Issue | null = null;
 
 		if (isUndefined(issue.number)) {
+			this.logger.debug(
+				`GitHub issues.create: ${this.owner}/${this.repo} title="${nonNullable(issue.title)}"`,
+			);
 			returned = toIssue(
 				(
 					await this.octokit.rest.issues.create({
@@ -75,6 +85,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 				).data,
 			);
 		} else {
+			this.logger.debug(
+				`GitHub issues.update: ${this.owner}/${this.repo} issue_number=${issue.number}`,
+			);
 			returned = toIssue(
 				(
 					await this.octokit.rest.issues.update({
@@ -91,6 +104,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 			);
 		}
 
+		this.logger.debug(
+			`GitHub issue dependencies sync: ${this.owner}/${this.repo} issue_number=${nonNullable(issue.number)}`,
+		);
 		const newDependencies = await this.#getIssueIds(issue.dependencies?.filter(isNumber) ?? []);
 		const oldDependencyIds = await this.#getAllDependencyIds(nonNullable(issue.number));
 
@@ -104,6 +120,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 	}
 
 	async #addDependencies(issueNumber: number, dependencyIds: number[]): Promise<void> {
+		this.logger.debug(
+			`GitHub issues.addBlockedByDependency: ${this.owner}/${this.repo} issue_number=${issueNumber} count=${dependencyIds.length}`,
+		);
 		await Promise.all(
 			dependencyIds.map(async (dependency) =>
 				this.octokit.rest.issues.addBlockedByDependency({
@@ -119,6 +138,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 	}
 
 	async #deleteDependencies(issueNumber: number, dependencyIds: number[]): Promise<void> {
+		this.logger.debug(
+			`GitHub issues.removeDependencyBlockedBy: ${this.owner}/${this.repo} issue_number=${issueNumber} count=${dependencyIds.length}`,
+		);
 		await Promise.all(
 			dependencyIds.map(async (dependency) =>
 				this.octokit.rest.issues.removeDependencyBlockedBy({
@@ -134,6 +156,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 	}
 
 	async #getAllDependencyIds(issueNumber: number): Promise<number[]> {
+		this.logger.debug(
+			`GitHub issues.listDependenciesBlockedBy: ${this.owner}/${this.repo} issue_number=${issueNumber}`,
+		);
 		const dependencyIds: number[] = [];
 		let page = 1;
 
@@ -164,6 +189,9 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 	}
 
 	async #getIssueIds(issueNumbers: number[]): Promise<number[]> {
+		this.logger.debug(
+			`GitHub issues.get (dependencies): ${this.owner}/${this.repo} count=${issueNumbers.length}`,
+		);
 		const issues = await Promise.all(
 			issueNumbers.map(async (issueNumber) => {
 				try {
@@ -176,7 +204,8 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 						})
 					).data.id;
 				} catch (error) {
-					if (error instanceof RequestError && [301, 404, 410].includes(error.status)) return null;
+					const status = getRequestStatus(error);
+					if (!isUndefined(status) && [301, 404, 410].includes(status)) return null;
 
 					throw error;
 				}
@@ -185,6 +214,16 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 
 		return Array.from(new Set(issues.filter(isNumber)));
 	}
+}
+
+function getRequestStatus(error: unknown): number | undefined {
+	// eslint-disable-next-line no-undefined
+	if (typeof error !== 'object' || error === null) return undefined;
+	// eslint-disable-next-line no-undefined
+	if (!('status' in error)) return undefined;
+	const { status } = error as { status?: unknown };
+	// eslint-disable-next-line no-undefined
+	return typeof status === 'number' ? status : undefined;
 }
 
 function toIssue(gitHubIssue: GitHubIssue): Issue {

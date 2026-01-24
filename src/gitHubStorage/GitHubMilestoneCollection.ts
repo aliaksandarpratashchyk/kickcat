@@ -4,7 +4,6 @@
  * Licensed under MIT (see LICENSE)
  */
 
-import { RequestError } from 'octokit';
 import { isUndefined } from 'underscore';
 
 import type { Milestone } from '../Milestone';
@@ -30,6 +29,9 @@ export interface GitHubMilestone {
  */
 export default class GitHubMilestoneCollection extends GitHubEntityCollection<Milestone> {
 	async delete(where: Partial<Milestone>): Promise<void> {
+		this.logger.debug(
+			`GitHub issues.deleteMilestone: ${this.owner}/${this.repo} milestone_number=${nonNullable(where.number)}`,
+		);
 		await this.octokit.rest.issues.deleteMilestone({
 			// eslint-disable-next-line camelcase
 			milestone_number: nonNullable(where.number),
@@ -39,6 +41,9 @@ export default class GitHubMilestoneCollection extends GitHubEntityCollection<Mi
 	}
 
 	async get(where: Partial<Milestone>): Promise<Milestone | undefined> {
+		this.logger.debug(
+			`GitHub issues.getMilestone: ${this.owner}/${this.repo} milestone_number=${nonNullable(where.number)}`,
+		);
 		try {
 			return toMilestone(
 				(
@@ -51,9 +56,14 @@ export default class GitHubMilestoneCollection extends GitHubEntityCollection<Mi
 				).data,
 			);
 		} catch (error) {
-			if (error instanceof RequestError && error.status === 404)
+			const status = getRequestStatus(error);
+			if (status === 404) {
+				this.logger.debug(
+					`GitHub issues.getMilestone returned 404: ${this.owner}/${this.repo} milestone_number=${nonNullable(where.number)}`,
+				);
 				// eslint-disable-next-line no-undefined
 				return undefined;
+			}
 
 			throw error;
 		}
@@ -61,6 +71,9 @@ export default class GitHubMilestoneCollection extends GitHubEntityCollection<Mi
 
 	async set(milestone: Partial<Milestone>): Promise<Milestone> {
 		if (isUndefined(milestone.number)) {
+			this.logger.debug(
+				`GitHub issues.createMilestone: ${this.owner}/${this.repo} title="${nonNullable(milestone.title)}"`,
+			);
 			return toMilestone(
 				(
 					await this.octokit.rest.issues.createMilestone({
@@ -76,6 +89,9 @@ export default class GitHubMilestoneCollection extends GitHubEntityCollection<Mi
 			);
 		}
 
+		this.logger.debug(
+			`GitHub issues.updateMilestone: ${this.owner}/${this.repo} milestone_number=${milestone.number}`,
+		);
 		return toMilestone(
 			(
 				await this.octokit.rest.issues.updateMilestone({
@@ -92,6 +108,13 @@ export default class GitHubMilestoneCollection extends GitHubEntityCollection<Mi
 			).data,
 		);
 	}
+}
+
+function getRequestStatus(error: unknown): number | undefined {
+	if (typeof error !== 'object' || error === null) return undefined;
+	if (!('status' in error)) return undefined;
+	const { status } = error as { status?: unknown };
+	return typeof status === 'number' ? status : undefined;
 }
 
 function toMilestone(gitHubMilestone: GitHubMilestone): Milestone {

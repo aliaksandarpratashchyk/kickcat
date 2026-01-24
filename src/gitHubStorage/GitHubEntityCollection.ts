@@ -9,6 +9,7 @@ import { Octokit } from 'octokit';
 
 import type { Entity } from '../Entity';
 import type { MilestoneState } from '../MilestoneState';
+import LoggerFacade from '../logging/LoggerFacade';
 
 /**
  * Minimal milestone shape returned by GitHub API.
@@ -38,9 +39,11 @@ export default abstract class GitHubEntityCollection<T extends Entity = Entity> 
 	readonly octokit: Octokit;
 	readonly owner: string;
 	readonly repo: string;
+	readonly logger: LoggerFacade;
 
 	// eslint-disable-next-line max-statements
-	constructor(token?: string) {
+	constructor(token?: string, logger?: LoggerFacade) {
+		this.logger = logger ?? new LoggerFacade();
 		const auth = token ?? process.env['GITHUB_TOKEN'];
 
 		if (typeof auth === 'undefined')
@@ -64,6 +67,7 @@ export default abstract class GitHubEntityCollection<T extends Entity = Entity> 
 		if (typeof owner === 'undefined') throw new Error(``);
 
 		this.owner = owner;
+		this.logger.debug(`Resolved GitHub target repository: ${this.owner}/${this.repo}`);
 	}
 
 	abstract delete(where: Partial<T>): Promise<void>;
@@ -75,7 +79,9 @@ export default abstract class GitHubEntityCollection<T extends Entity = Entity> 
  * Reads repository owner and name from `GITHUB_REPOSITORY` environment variable.
  */
 export function getOwnerRepoFromEnv(): { owner?: string; repo?: string } {
-	const [owner, repo] = (process.env['GITHUB_REPOSITORY'] ?? '').split('/');
+	const raw = process.env['GITHUB_REPOSITORY'];
+	if (typeof raw !== 'string' || raw.trim() === '') return {};
+	const [owner, repo] = raw.split('/');
 	return { owner, repo };
 }
 
@@ -110,6 +116,6 @@ export function getOwnerRepoFromGit(): { owner?: string; repo?: string } {
 
 function getRepositoryOwnerFromEnvironment(): string | undefined {
 	return (
-		process.env['GITHUB_REPOSITORY_OWNER'] ?? (process.env['GITHUB_REPOSITORY'] ?? '').split('/')[1]
+		process.env['GITHUB_REPOSITORY_OWNER'] ?? (process.env['GITHUB_REPOSITORY'] ?? '').split('/')[0]
 	);
 }
