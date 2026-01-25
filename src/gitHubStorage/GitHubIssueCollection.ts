@@ -68,6 +68,27 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 		// eslint-disable-next-line no-useless-assignment
 		let returned: Issue | null = null;
 
+		let milestoneNumber: number | null = null;
+
+		if (typeof issue.milestone === 'string') {
+			this.logger.debug(
+				`GitHub issues.getMilestoneByTitle: ${this.owner}/${this.repo} title="${issue.milestone}"`,
+			);
+			const milestone = (await this.octokit.rest.issues.listMilestones({
+				owner: this.owner,
+				repo: this.repo,
+				state: 'all',
+			})).data.find((mil) => mil.title === issue.milestone);			
+
+			if (milestone) {
+				milestoneNumber = milestone.number;
+			} else {
+				this.logger.debug(
+					`Milestone "${issue.milestone}" not found.`,
+				);				
+			}
+		}
+
 		if (isUndefined(issue.number)) {
 			this.logger.debug(
 				`GitHub issues.create: ${this.owner}/${this.repo} title="${nonNullable(issue.title)}"`,
@@ -76,8 +97,8 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 				(
 					await this.octokit.rest.issues.create({
 						body: issue.description,
-						labels: issue.labels,
-						milestone: isNumber(issue.milestone) ? issue.milestone : undefined,
+						labels: issue.labels,						
+						milestone: milestoneNumber,
 						owner: this.owner,
 						repo: this.repo,
 						title: nonNullable(issue.title),
@@ -94,8 +115,8 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 						body: issue.description,
 						// eslint-disable-next-line camelcase
 						issue_number: issue.number,
-						labels: issue.labels,
-						milestone: isNumber(issue.milestone) ? issue.milestone : undefined,
+						labels: issue.labels,						
+						milestone: milestoneNumber,
 						owner: this.owner,
 						repo: this.repo,
 						title: nonNullable(issue.title),

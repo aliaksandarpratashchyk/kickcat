@@ -63,7 +63,21 @@ export default class GitHubStorage implements EntityStorage {
 	async commit(): Promise<void> {
 		await Promise.all(
 			this.#entityRegistry
-				.all()
+				.all(LABEL)
+				.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
+				.map(this.#commitOne.bind(this)),
+		);
+
+		await Promise.all(
+			this.#entityRegistry
+				.all(MILESTONE)
+				.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
+				.map(this.#commitOne.bind(this)),
+		);
+
+		await Promise.all(
+			this.#entityRegistry
+				.all(ISSUE)
 				.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
 				.map(this.#commitOne.bind(this)),
 		);
