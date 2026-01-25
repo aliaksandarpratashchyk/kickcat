@@ -102,9 +102,12 @@ export default class GitHubLabelCollection extends GitHubEntityCollection<Label>
 }
 
 function getRequestStatus(error: unknown): number | undefined {
+	// eslint-disable-next-line no-undefined
 	if (typeof error !== 'object' || error === null) return undefined;
+	// eslint-disable-next-line no-undefined
 	if (!('status' in error)) return undefined;
 	const { status } = error as { status?: unknown };
+	// eslint-disable-next-line no-undefined
 	return typeof status === 'number' ? status : undefined;
 }
 

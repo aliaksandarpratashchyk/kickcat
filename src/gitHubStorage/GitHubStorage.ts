@@ -61,26 +61,35 @@ export default class GitHubStorage implements EntityStorage {
 	 * Pushes pending changes to GitHub.
 	 */
 	async commit(): Promise<void> {
-		await Promise.all(
-			this.#entityRegistry
-				.all(LABEL)
-				.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
-				.map(this.#commitOne.bind(this)),
-		);
+		this.logger.info('Committing changes to GitHub...');
 
-		await Promise.all(
-			this.#entityRegistry
-				.all(MILESTONE)
-				.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
-				.map(this.#commitOne.bind(this)),
-		);
+		try {
+			await Promise.all(
+				this.#entityRegistry
+					.all(LABEL)
+					.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
+					.map(this.#commitOne.bind(this)),
+			);
 
-		await Promise.all(
-			this.#entityRegistry
-				.all(ISSUE)
-				.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
-				.map(this.#commitOne.bind(this)),
-		);
+			await Promise.all(
+				this.#entityRegistry
+					.all(MILESTONE)
+					.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
+					.map(this.#commitOne.bind(this)),
+			);
+
+			await Promise.all(
+				this.#entityRegistry
+					.all(ISSUE)
+					.filter((entry) => [DIRTY, KILLED, NEW].includes(entry.state))
+					.map(this.#commitOne.bind(this)),
+			);
+		}
+		catch (error) {
+			this.logger.error(`Failed to commit changes to GitHub. Got error: ${error instanceof Error ? error.message : String(error)}`);
+			throw error;
+		}
+
 	}
 
 	/**
