@@ -31,12 +31,15 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Push entities to GitHub
         env:                  
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          npx @aliaksandarpratashchyk/kickcat entity push all --log-level=info
+          npx @aliaksandarpratashchyk/kickcat entity push all --log-level=debug
 
       - name: Commit changes
         id: commit
