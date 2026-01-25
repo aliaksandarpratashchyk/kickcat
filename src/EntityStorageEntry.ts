@@ -278,22 +278,24 @@ export default class EntityStorageEntry<
 					}
 
 					entity = { ...entity, [propertyName]: referencePrimaryKeys };
-				} else {
-					// eslint-disable-next-line no-await-in-loop
-					const reference = await this.reference(propertyName);
+					} else {
+						// eslint-disable-next-line no-await-in-loop
+						const reference = await this.reference(propertyName);
 
-					if (isNull(reference) || reference.notHasPrimaryKey) {
-						// eslint-disable-next-line max-depth
-						if (propertySchema.required)
-							throw new Error(
-								`Can't free "${this.schema.type}" from "${propertySchema.reference}" reference in the required property "${propertyName}".`,
-							);
+						if (isNull(reference) || reference.notHasPrimaryKey) {
+							// eslint-disable-next-line max-depth
+							if (propertySchema.required)
+								throw new Error(
+									`Can't free "${this.schema.type}" from "${propertySchema.reference}" reference in the required property "${propertyName}".`,
+								);
 
-						entity = omit(entity, propertyName);
+							entity = omit(entity, propertyName);
+						} else {
+							entity = { ...entity, [propertyName]: reference.primaryKey };
+						}
 					}
 				}
 			}
-		}
 
 		return entity;
 	}
@@ -457,10 +459,10 @@ export default class EntityStorageEntry<
 		if (isUndefined(referenceSchema))
 			throw new Error(
 				`Referenced entity type schema "${propertySchema.reference}" not found in the registry.`,
+			// eslint-disable-next-line max-lines
 			);
 
-		const possibleReferenceKeyProperties = [
-			// eslint-disable-next-line max-lines
+		const possibleReferenceKeyProperties = [			
 			...(isString(referenceSchema.primaryKeyProperty) ? [referenceSchema.primaryKeyProperty] : []),			
 			...referenceSchema.uniqueProperties,
 			...referenceSchema.newUniqueProperties,
@@ -537,51 +539,56 @@ export default class EntityStorageEntry<
 
 		if (isNull(referenceSchema.primaryKeyProperty)) return false;
 
-		if (
-			referenceSchema.uniqueProperties.length === 0 &&
-			referenceSchema.newUniqueProperties.length === 0
-		)
-			return true;
+			if (
+				referenceSchema.uniqueProperties.length === 0 &&
+				referenceSchema.newUniqueProperties.length === 0
+			)
+				return true;
 
 		if (isUndefined(this.#entity[propertyName]) || isNull(this.#entity[propertyName])) return true;
 
 		if (Array.isArray(this.#entity[propertyName])) {
-			const referencePrimaryKeys = [];
-			let success = true;
+				const referencePrimaryKeys: (number | string)[] = [];
+				let success = true;
 
-			for (const referenceKey of this.#entity[propertyName]) {
-				if (
-					isNumber(this.#entity[propertyName]) &&
-					referenceSchema.canValueOfTypeBeOnlyPrimaryKey('number')
-				) {
-					referencePrimaryKeys.push(referenceKey);
-					// eslint-disable-next-line no-continue
-					continue;
+				for (const referenceKey of this.#entity[propertyName]) {
+					if (
+						isNumber(referenceKey) &&
+						referenceSchema.canValueOfTypeBeOnlyPrimaryKey('number')
+					) {
+						referencePrimaryKeys.push(referenceKey);
+						// eslint-disable-next-line no-continue
+						continue;
+					}
+
+					if (
+						isString(referenceKey) &&
+						referenceSchema.canValueOfTypeBeOnlyPrimaryKey('string')
+					) {
+						referencePrimaryKeys.push(referenceKey);
+						// eslint-disable-next-line no-continue
+						continue;
+					}
+
+					if (!isNumber(referenceKey) && !isString(referenceKey)) {						
+						success = false;
+						// eslint-disable-next-line no-continue
+						continue;
+					}
+
+					// eslint-disable-next-line no-await-in-loop
+					const reference = await this.oneReference(propertyName, referenceKey);
+
+					if (isNull(reference) || reference.notHasPrimaryKey) {
+						referencePrimaryKeys.push(referenceKey);
+						success = false;
+						// eslint-disable-next-line no-continue
+						continue;
+					}
+
+					if (reference.primaryKey !== null)
+						referencePrimaryKeys.push(reference.primaryKey);
 				}
-
-				if (
-					isString(this.#entity[propertyName]) &&
-					referenceSchema.canValueOfTypeBeOnlyPrimaryKey('string')
-				) {
-					referencePrimaryKeys.push(referenceKey);
-					// eslint-disable-next-line no-continue
-					continue;
-				}
-
-				if (!isNumber(referenceKey) || !isString(referenceKey)) {
-					referencePrimaryKeys.push(referenceKey);
-					success = false;
-					// eslint-disable-next-line no-continue
-					continue;
-				}
-
-				// eslint-disable-next-line no-await-in-loop
-				const reference = await this.oneReference(propertyName, referenceKey);
-
-				if (isNull(reference) || reference.notHasPrimaryKey) success = false;
-
-				referencePrimaryKeys.push(reference?.primaryKey ?? referenceKey);
-			}
 
 			this.#entity = unsafe({
 				...this.#entity,

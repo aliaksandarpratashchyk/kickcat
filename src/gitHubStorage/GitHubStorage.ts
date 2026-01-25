@@ -86,7 +86,7 @@ export default class GitHubStorage implements EntityStorage {
 			);
 		}
 		catch (error) {
-			this.logger.error(`Failed to commit changes to GitHub. Got error: ${error instanceof Error ? error.message : String(error)}`);
+			this.logger.error(`Failed to commit changes to GitHub. Got error: ${formatError(error)}`);
 			throw error;
 		}
 
@@ -161,4 +161,30 @@ export default class GitHubStorage implements EntityStorage {
 			entry.clean(await this.colletions[entry.schema.type].set(entry.entity));
 		}
 	}
+}
+
+function formatError(error: unknown): string {
+	if (error instanceof Error) {
+		const message = error.message.trim();
+		const status = getStatus(error);
+		const statusSuffix = typeof status === 'number' ? ` (status ${status})` : '';
+		return `${error.name}${message === '' ? '' : `: ${message}`}${statusSuffix}`;
+	}
+
+	if (typeof error === 'object' && error !== null && 'message' in error) {
+		const { message } = error as { message?: unknown };
+		if (typeof message === 'string' && message.trim() !== '') return message.trim();
+	}
+
+	return String(error);
+}
+
+function getStatus(error: unknown): number | undefined {
+	// eslint-disable-next-line no-undefined
+	if (typeof error !== 'object' || error === null) return undefined;
+	// eslint-disable-next-line no-undefined
+	if (!('status' in error)) return undefined;
+	const { status } = error as { status?: unknown };
+	// eslint-disable-next-line no-undefined
+	return typeof status === 'number' ? status : undefined;
 }

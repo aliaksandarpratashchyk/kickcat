@@ -85,7 +85,6 @@ export default class EntityPushAllCommand
 
 		const secondRunBindingBag = new EntityStorageEntryBindingBag();
 
-		 
 		for (const binding of firstRunBindingBag.bindings)
 			// eslint-disable-next-line no-await-in-loop
 			await this.#pushOneOnSecondRun(binding.target, binding.source, secondRunBindingBag);
@@ -122,11 +121,14 @@ export default class EntityPushAllCommand
 
 		const sanitizedEntity = await this.#entityWithSameTypeReferences(entry);
 
+		const strategy =
+			!this.#stripCrossTypeReferences && noDependencies ? SUBSTITUTE : MERGE;
+
 		bindingBag.add(
 			new EntityStorageEntryBinding(
 				entry,
 				await this.#remoteStorage.new(entry.schema.type, sanitizedEntity),
-				noDependencies ? SUBSTITUTE : MERGE,
+				strategy,
 			),
 		);
 	}
@@ -172,7 +174,7 @@ export default class EntityPushAllCommand
 		const remoteEntry = await this.#remoteStorage.one(localEntry.schema.type, localEntry.entity);
 
 		if (isUndefined(remoteEntry)) {
-			await this.#obsoleteOne(localEntry, !force);
+			await this.#obsoleteOne(localEntry, true);
 			return;
 		}
 
@@ -193,7 +195,11 @@ export default class EntityPushAllCommand
 			const sanitized = await this.#entityWithSameTypeReferences(localEntry);
 
 			bindingBag.add(
-				new EntityStorageEntryBinding(localEntry, remoteEntry.substitute(sanitized)),
+				new EntityStorageEntryBinding(
+					localEntry,
+					remoteEntry.substitute(sanitized),
+					this.#stripCrossTypeReferences ? MERGE : SUBSTITUTE,
+				),
 			);
 
 			return;
@@ -202,7 +208,13 @@ export default class EntityPushAllCommand
 		this.#logger.warn(
 			`Conflict detected, the hash of the remote ${localEntry.schema.type} "${remoteHash}" and the saved hash of the local ${localEntry.schema.type} "${oldHash}" don't match, updating local ${localEntry.schema.type}.`,
 		);
-		localEntry.substitute(remoteEntry.entity);
+		localEntry.substitute(
+			unsafe(
+				this.#stripCrossTypeReferences
+					? this.#preserveCrossTypeReferences(localEntry, remoteEntry.entity)
+					: remoteEntry.entity,
+			),
+		);
 	}
 
 	async #pushOneOnSecondRun(
@@ -212,9 +224,8 @@ export default class EntityPushAllCommand
 	): Promise<void> {
 		if (!(await localEntry.tryBringDependenciesToPrimaryKeys())) {
 			this.#logger.warn(
-				`The ${localEntry.schema.type} still has non-primary key dependencies, skipping.`,
+				`The ${localEntry.schema.type} still has non-primary key dependencies; pushing anyway.`,
 			);
-			return;
 		}
 
 		const newHash = hash(localEntry.entity);
@@ -231,6 +242,7 @@ export default class EntityPushAllCommand
 			new EntityStorageEntryBinding(
 				localEntry,
 				remoteEntry.substitute(await this.#entityWithSameTypeReferences(localEntry)),
+				this.#stripCrossTypeReferences ? MERGE : SUBSTITUTE,
 			),
 		);
 	}
@@ -241,7 +253,7 @@ export default class EntityPushAllCommand
 	async #entityWithSameTypeReferences(entry: EntityStorageEntry): Promise<Entity> {
 		if (!this.#stripCrossTypeReferences) return { ...entry.entity };
 
-		const entity = await entry.getFreeOfNonPrimaryKeyDependeciesEntity();		
+		const entity = await entry.getFreeOfNonPrimaryKeyDependeciesEntity();
 
 		return Object.fromEntries(
 			Object.entries(entity).filter(([propertyName]) => {
@@ -250,5 +262,22 @@ export default class EntityPushAllCommand
 				return isUndefined(propertySchema?.reference) || propertySchema.reference === entry.schema.type;
 			}),
 		);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/class-methods-use-this
+	#preserveCrossTypeReferences(entry: EntityStorageEntry, base: Entity): Entity {
+		const preserved: Record<string, unknown> = {};
+
+		for (const [propertyName, propertySchema] of Object.entries(entry.schema.properties)) {
+			if (
+				!isUndefined(propertySchema.reference) &&
+				propertySchema.reference !== entry.schema.type &&
+				propertyName in entry.entity
+			) {
+				preserved[propertyName] = unsafe(entry.entity[propertyName]);
+			}
+		}
+
+		return { ...base, ...preserved };
 	}
 }

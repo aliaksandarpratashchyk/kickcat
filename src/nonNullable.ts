@@ -9,7 +9,8 @@
  * Throws if the value is nullish.
  */
 export default function nonNullable<T>(value: T): NonNullable<T> {
-	if (typeof value === 'undefined' || value === null) throw new Error(``);
+	if (typeof value === 'undefined' || value === null)
+		throw new Error(`Expected value to be non-nullable, got ${value === null ? 'null' : 'undefined'}.`);
 
 	return value;
 }

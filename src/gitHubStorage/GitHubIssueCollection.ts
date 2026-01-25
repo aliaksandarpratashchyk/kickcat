@@ -18,7 +18,9 @@ import GitHubEntityCollection from './GitHubEntityCollection';
 export interface GitHubIssue {
 	[key: string]: unknown;
 	body?: null | string;
-	issue_number?: number;
+	labels?: unknown[];
+	milestone?: null | { number?: unknown; title?: unknown };
+	number: number;
 	state: string;
 	title: string;
 }
@@ -68,24 +70,39 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 		// eslint-disable-next-line no-useless-assignment
 		let returned: Issue | null = null;
 
-		let milestoneNumber: number | null = null;
+		let milestoneNumber: number | undefined;
+
+		if (isNumber(issue.milestone)) milestoneNumber = issue.milestone;
 
 		if (typeof issue.milestone === 'string') {
 			this.logger.debug(
 				`GitHub issues.getMilestoneByTitle: ${this.owner}/${this.repo} title="${issue.milestone}"`,
 			);
-			const milestone = (await this.octokit.rest.issues.listMilestones({
-				owner: this.owner,
-				repo: this.repo,
-				state: 'all',
-			})).data.find((mil) => mil.title === issue.milestone);			
+			const normalize = (value: string): string =>
+				value
+					.toLowerCase()
+					.replaceAll('&', 'and')
+					.replaceAll(/[^a-z0-9]+/gu, ' ')
+					.trim();
+
+			const candidate = issue.milestone;
+
+			const milestones = (
+				await this.octokit.rest.issues.listMilestones({
+					owner: this.owner,
+					repo: this.repo,
+					state: 'all',
+				})
+			).data;
+
+			const milestone =
+				milestones.find((mil) => mil.title === candidate) ??
+				milestones.find((mil) => normalize(mil.title) === normalize(candidate));
 
 			if (milestone) {
 				milestoneNumber = milestone.number;
 			} else {
-				this.logger.debug(
-					`Milestone "${issue.milestone}" not found.`,
-				);				
+				this.logger.debug(`Milestone "${issue.milestone}" not found.`);
 			}
 		}
 
@@ -97,8 +114,8 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 				(
 					await this.octokit.rest.issues.create({
 						body: issue.description,
-						labels: issue.labels,						
-						milestone: milestoneNumber,
+						labels: issue.labels,
+						...(isNumber(milestoneNumber) ? { milestone: milestoneNumber } : {}),
 						owner: this.owner,
 						repo: this.repo,
 						title: nonNullable(issue.title),
@@ -115,8 +132,8 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 						body: issue.description,
 						// eslint-disable-next-line camelcase
 						issue_number: issue.number,
-						labels: issue.labels,						
-						milestone: milestoneNumber,
+						labels: issue.labels,
+						...(isNumber(milestoneNumber) ? { milestone: milestoneNumber } : {}),
 						owner: this.owner,
 						repo: this.repo,
 						title: nonNullable(issue.title),
@@ -125,19 +142,29 @@ export default class GitHubIssueCollection extends GitHubEntityCollection<Issue>
 			);
 		}
 
-		this.logger.debug(
-			`GitHub issue dependencies sync: ${this.owner}/${this.repo} issue_number=${nonNullable(issue.number)}`,
-		);
-		const newDependencies = await this.#getIssueIds(issue.dependencies?.filter(isNumber) ?? []);
-		const oldDependencyIds = await this.#getAllDependencyIds(nonNullable(issue.number));
+		const saved = nonNullable(returned);
 
-		const dependenciesToAdd = difference(newDependencies, oldDependencyIds);
-		await this.#addDependencies(nonNullable(issue.number), dependenciesToAdd);
+		const issueNumber = saved.number;
 
-		const dependenciesToDelete = difference(oldDependencyIds, newDependencies);
-		await this.#deleteDependencies(nonNullable(issue.number), dependenciesToDelete);
+		if (isNumber(issueNumber)) {
+			this.logger.debug(
+				`GitHub issue dependencies sync: ${this.owner}/${this.repo} issue_number=${issueNumber}`,
+			);
+			const newDependencies = await this.#getIssueIds(issue.dependencies?.filter(isNumber) ?? []);
+			const oldDependencyIds = await this.#getAllDependencyIds(issueNumber);
 
-		return returned;
+			const dependenciesToAdd = difference(newDependencies, oldDependencyIds);
+			await this.#addDependencies(issueNumber, dependenciesToAdd);
+
+			const dependenciesToDelete = difference(oldDependencyIds, newDependencies);
+			await this.#deleteDependencies(issueNumber, dependenciesToDelete);
+		} else {
+			this.logger.debug(
+				`GitHub issue dependencies sync skipped: ${this.owner}/${this.repo} (issue number missing)`,
+			);
+		}
+
+		return saved;
 	}
 
 	async #addDependencies(issueNumber: number, dependencyIds: number[]): Promise<void> {
@@ -249,11 +276,31 @@ function getRequestStatus(error: unknown): number | undefined {
 
 function toIssue(gitHubIssue: GitHubIssue): Issue {
 	const issue: Issue = {
-		number: gitHubIssue.issue_number,
+		number: gitHubIssue.number,
 		title: gitHubIssue.title,
 	};
 
 	if (isString(gitHubIssue.body)) issue.description = gitHubIssue.body;
+
+	if (Array.isArray(gitHubIssue.labels)) {
+		const labels = gitHubIssue.labels
+			.map((label) => {
+				if (isString(label)) return label;
+				if (typeof label === 'object' && label !== null && 'name' in label) {
+					const { name } = label as { name?: unknown };
+					return isString(name) ? name : null;
+				}
+				return null;
+			})
+			.filter(isString);
+
+		if (labels.length > 0) issue.labels = labels;
+	}
+
+	if (typeof gitHubIssue.milestone === 'object' && gitHubIssue.milestone !== null) {
+		const { number } = gitHubIssue.milestone;
+		if (isNumber(number)) issue.milestone = number;
+	}
 
 	if (isIssueState(gitHubIssue.state)) issue.state = gitHubIssue.state;
 
