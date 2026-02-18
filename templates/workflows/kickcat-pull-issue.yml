@@ -1,5 +1,5 @@
 # Keep KickCat issues in sync with GitHub issue events
-name: kickcat-pull-issue
+name: kickcat-sync-issue
 
 on:
   issues:
@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   sync:
@@ -42,10 +43,10 @@ jobs:
 
           case "${ACTION}" in
             opened|edited|reopened|closed)
-              npx @aliaksandarpratashchyk/kickcat entity pull --of=issue --key=number --value="${ISSUE_NUMBER}"
+              npx @aliaksandarpratashchyk/kickcat entity pull --of=issue --key=number --value="${ISSUE_NUMBER}" --log-level=debug
               ;;
             deleted)
-              npx @aliaksandarpratashchyk/kickcat entity delete --of=issue --key=number --value="${ISSUE_NUMBER}"
+              npx @aliaksandarpratashchyk/kickcat entity delete --of=issue --key=number --value="${ISSUE_NUMBER}" --log-level=debug
               ;;
             *)
               echo "Issue action ${ACTION} not handled; skipping."

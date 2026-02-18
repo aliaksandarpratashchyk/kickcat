@@ -51,7 +51,9 @@ export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
 		@inject(EntitySchemaRegistry) entitySchemaRegistry: EntitySchemaRegistry,
 		@inject(LoggerFacade) logger: LoggerFacade,
 	) {
-		this.storagePath = storagePath ?? process.cwd();
+		// Normalize to an absolute path so all internal path operations are consistent,
+		// regardless of the caller passing a relative or absolute path.
+		this.storagePath = resolve(process.cwd(), storagePath ?? process.cwd());
 		this.repair = repair ?? false;
 
 		this.entitySchemaRegistry = entitySchemaRegistry;
@@ -161,7 +163,7 @@ export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
 
 		if (stats.isDirectory()) {
 			const inStorage = await readdir(this.storagePath);
-			const forEntity = inStorage.filter((path) => path.includes(entityType));
+			const forEntity = inStorage.filter((entryName) => entryName.includes(entityType));
 
 			if (forEntity.length > 1)
 				throw new Error(
@@ -170,15 +172,19 @@ export default class LocalStorage implements EntityStorage<LocalStorageCookie> {
 
 			if (forEntity.length === 0) return resolve(this.storagePath, `${entityType}.yml`);
 
-			const forEntityStats = await stat(nonNullable(forEntity[0]));
+			const forEntityPath = resolve(this.storagePath, nonNullable(forEntity[0]));
+			const forEntityStats = await stat(forEntityPath);
 
-			if (forEntityStats.isFile()) return nonNullable(forEntity[0]);
+			if (forEntityStats.isFile()) return forEntityPath;
 			else if (forEntityStats.isDirectory()) {
-				return (
-					(await readdir(nonNullable(forEntity[0]))).find((file) =>
-						/(?:common|shared)/u.exec(file),
-					) ?? resolve(this.storagePath, 'shared.yml')
+				const shared = (await readdir(forEntityPath)).find((file) =>
+					/(?:common|shared)/u.exec(file),
 				);
+
+				if (shared !== undefined) return resolve(forEntityPath, shared);
+
+				// Backward-compatible fallback: use a shared file at the storage root.
+				return resolve(this.storagePath, 'shared.yml');
 			}
 		}
 
