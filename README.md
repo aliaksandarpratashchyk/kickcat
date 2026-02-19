@@ -6,6 +6,8 @@
 
 KickCat keeps GitHub metadata (milestones, labels, issues) as YAML and syncs it with a GitHub repository or a file-based store. It preserves schema-driven ordering and hash comments so you can review changes as code.
 
+- Documentation: [KickCat Codex](./codex/index.md)
+
 ## What it does
 
 - Manage milestones, labels, and issues as YAML with `$schema` + `hash` comments.

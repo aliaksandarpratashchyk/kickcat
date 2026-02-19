@@ -1,6 +1,6 @@
 {
 	"name": "@aliaksandarpratashchyk/kickcat",
-	"version": "0.5.9",
+	"version": "0.6.0",
 	"description": "Infrastructure-as-code toolkit for GitHub repository automation. Includes reusable workflows, utilities, and a CLI to install workflow templates.",
 	"bin": {
 		"kickcat": "./dist/bundle.js"
